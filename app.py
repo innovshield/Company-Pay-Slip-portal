@@ -19,7 +19,7 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# 🔑 सुरक्षित एम्प्लोयी डेटाबेस (सभी कीज़ छोटे अक्षरों में रखी हैं ताकि लॉगिन आसान हो)
+# 🔑 सुरक्षित एम्प्लोयी डेटाबेस (Testing के लिए Credentials)
 EMPLOYEE_DB = {
     "is-10245": {
         "password": "password123",
@@ -69,7 +69,7 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>Bank Account:</b> {emp_data.get('BankAccount', 'N/A')}", normal_style), Paragraph(f"<b>PAN / UAN:</b> {emp_data.get('PAN_UAN', 'N/A')}", normal_style)]
     ]
     
-    # तालिकाओं की चौड़ाई सेट की (270 + 270 = 540)
+    # यहाँ [270, 270] की सही वैल्यू डाल दी गई है ताकि कोडिंग एरर न आए
     info_table = Table(info_data, colWidths=[270, 270])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -102,7 +102,7 @@ def generate_pdf(emp_data):
         [Paragraph("<b>Total Earnings</b>", bold_style), Paragraph(f"<b>{total_earnings:,.2f}</b>", bold_style), Paragraph("<b>Total Deductions</b>", bold_style), Paragraph(f"<b>{total_deductions:,.2f}</b>", bold_style)]
     ]
     
-    # 160 + 110 + 160 + 110 = 540 कुल चौड़ाई
+    # यहाँ भी सही फिगर्स डाल दिए गए हैं
     financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[160, 110, 160, 110])
     financial_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")),
@@ -134,7 +134,7 @@ def generate_pdf(emp_data):
 st.title("🔒 Secure Corporate PaySlip Portal")
 st.write("Please enter your credentials to download your Pay Slip.")
 
-# Session State को इनिशियलाइज़ करना ताकि स्टेट बनी रहे
+# Session State सेटअप
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.emp_data = None
@@ -143,16 +143,14 @@ emp_code_input = st.text_input("Employee Code (e.g., IS-10245)")
 password_input = st.text_input("Password", type="password")
 
 if st.button("Verify & Access Pay Slip"):
-    # केस-इंसेंसिटिव बनाने के लिए .lower() और स्पेस हटाने के लिए .strip() का इस्तेमाल
     clean_code = emp_code_input.strip().lower()
     
     if clean_code in EMPLOYEE_DB:
         if EMPLOYEE_DB[clean_code]["password"] == password_input:
             st.session_state.logged_in = True
-            # डेटा को सेशन स्टेट में सुरक्षित रख लिया
             st.session_state.emp_data = EMPLOYEE_DB[clean_code].copy()
             st.session_state.emp_data["EmployeeCode"] = emp_code_input.strip()
-            st.rerun() # स्क्रीन को तुरंत अपडेट करने के लिए
+            st.rerun()
         else:
             st.error("Incorrect Password. Please try again.")
             st.session_state.logged_in = False
@@ -160,11 +158,10 @@ if st.button("Verify & Access Pay Slip"):
         st.error("Employee Code not found. Please check the code and try again.")
         st.session_state.logged_in = False
 
-# यदि लॉगिन सक्सेसफुल है, तो डाउनलोड बटन हमेशा स्क्रीन पर टिका रहेगा
+# सफल लॉगिन होने पर डाउनलोड बटन दिखाएं
 if st.session_state.logged_in and st.session_state.emp_data:
     st.success(f"Welcome, {st.session_state.emp_data['Employee Name']}! Your Pay Slip is verified.")
     
-    # चुपचाप बैकएंड में पीडीएफ बनाएं
     pdf_bytes = generate_pdf(st.session_state.emp_data)
     
     st.download_button(
