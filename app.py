@@ -25,7 +25,7 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 🛠️ HELPER: MOCK DATA CREATOR (If excel doesn't exist)
+# 🛠️ HELPER: MOCK DATA CREATOR (Fixed Syntax Error here)
 def create_mock_data():
     if not os.path.exists(excel_file):
         mock_df = pd.DataFrame({
@@ -35,10 +35,10 @@ def create_mock_data():
             'Designation': ['Software Engineer', 'HR Manager'],
             'Month': ['October 2026', 'October 2026'],
             'Basic':,
-            'HRA':,                 # Test case: HRA is 0 for EMP001 (will be hidden)
-            'Special Allowance':,    # Test case: Special Allowance is 0 for EMP002 (will be hidden)
+            'HRA':,                 # Test case: 0 value will be hidden automatically
+            'Special Allowance':,    # Test case: 0 value will be hidden automatically
             'Deductions':,
-            'PF': [1800, 0]                    # Test case: PF is 0 for EMP002 (will be hidden)
+            'PF': [1800, 0]                    # Test case: 0 value will be hidden automatically
         })
         mock_df.to_excel(excel_file, index=False)
 
@@ -49,9 +49,28 @@ def get_html_payslip(emp):
     earning_keys = ['Basic', 'HRA', 'Special Allowance', 'Dearness Allowance', 'Medical Allowance']
     deduction_keys = ['Deductions', 'PF', 'Professional Tax', 'TDS']
     
-    # Filter out keys with 0 or Null values dynamically
-    active_earnings = {k: float(emp.get(k, 0)) for k in earning_keys if pd.notna(emp.get(k)) and float(emp.get(k, 0)) > 0}
-    active_deductions = {k: float(emp.get(k, 0)) for k in deduction_keys if pd.notna(emp.get(k)) and float(emp.get(k, 0)) > 0}
+    # Clean and filter out keys with 0, empty string, or Null values dynamically
+    active_earnings = {}
+    for k in earning_keys:
+        val = emp.get(k)
+        if pd.notna(val) and val != "":
+            try:
+                float_val = float(val)
+                if float_val > 0:
+                    active_earnings[k] = float_val
+            except ValueError:
+                pass
+
+    active_deductions = {}
+    for k in deduction_keys:
+        val = emp.get(k)
+        if pd.notna(val) and val != "":
+            try:
+                float_val = float(val)
+                if float_val > 0:
+                    active_deductions[k] = float_val
+            except ValueError:
+                pass
     
     total_earnings = sum(active_earnings.values())
     total_deductions = sum(active_deductions.values())
@@ -129,11 +148,16 @@ if not st.session_state['is_authenticated']:
                     df = pd.read_excel(excel_file)
                     df.columns = df.columns.str.strip()
                     
-                    match = df[(df['EmployeeCode'].astype(str) == emp_code) & (df['Password'].astype(str) == password)]
+                    # Convert match lookup columns cleanly into string type
+                    df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip()
+                    df['Password'] = df['Password'].astype(str).str.strip()
+                    
+                    match = df[(df['EmployeeCode'] == emp_code) & (df['Password'] == password)]
                     
                     if not match.empty:
                         st.session_state['is_authenticated'] = True
-                        st.session_state['logged_in_user'] = match.iloc.to_dict()
+                        # Select first row match record cleanly
+                        st.session_state['logged_in_user'] = match.iloc[0].to_dict()
                         st.rerun()
                     else:
                         st.error("Invalid Employee Code or Password.")
@@ -147,7 +171,7 @@ else:
     
     col1, col2 = st.columns()
     with col1:
-        st.success(f"Welcome, {user_data['Employee Name']}")
+        st.success(f"Welcome, {user_data.get('Employee Name', 'User')}")
     with col2:
         if st.button("Logout", use_container_width=True):
             st.session_state['is_authenticated'] = False
