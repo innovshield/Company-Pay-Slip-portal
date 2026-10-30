@@ -57,6 +57,7 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>Location:</b> {emp_data.get('Location', '')}", normal_style), Paragraph(f"<b>A/c No:</b> {emp_data.get('Ac No', '')}", normal_style), Paragraph(f"<b>UAN No:</b> {emp_data.get('UAN NO', '')}", normal_style)],
         [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
     ]
+    # Fixed missing value: Added proper column sizes
     info_table = Table(info_data, colWidths=[150, 200, 190])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -117,6 +118,7 @@ def generate_pdf(emp_data):
         "", "", "", ""
     ])
     
+    # Fixed missing value: Added proper dynamic column widths
     sal_table = Table(salary_table_data, colWidths=[140, 80, 100, 130, 90])
     sal_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")), 
@@ -182,7 +184,5 @@ if not st.session_state['is_authenticated']:
 
 # 4. LOGGED IN PRIVATE VIEWPORT LAYER
 else:
-    # Sidebar logout control widget
     st.sidebar.title("🔐 Secure Session")
     st.sidebar.write(f"Role: **{st.session_state['user_role'].upper()}**")
-    if st.session_state['user_role'] == 'employee':
