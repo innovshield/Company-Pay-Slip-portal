@@ -4,7 +4,6 @@ import os
 
 # 1. PAGE CONFIGURATION
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
-st.title("🔒 Secure Corporate PaySlip Portal")
 
 # SAFE NUMBER CONVERTER
 def safe_num(val):
@@ -27,7 +26,7 @@ def get_html_payslip(emp_data):
     mobile_and_incentives = safe_num(emp_data.get('Mobile Allo', 0)) + safe_num(emp_data.get('Special Incentive', 0)) + safe_num(emp_data.get('Group Incentive', 0)) + other_inc
 
     html_content = f"""
-    <div style="font-family: Arial, sans-serif; border: 2px solid #1A365D; padding: 20px; border-radius: 8px; max-width: 650px; margin: auto; background-color: #ffffff; color: #333333;">
+    <div style="font-family: Arial, sans-serif; border: 2px solid #1A365D; padding: 20px; border-radius: 8px; max-width: 650px; margin: auto; background-color: #ffffff; color: #333333; margin-top: 20px;">
         <div style="text-align: center; margin-bottom: 20px;">
             <h2 style="color: #1A365D; margin: 0 0 5px 0; font-size: 22px;">YOUR COMPANY NAME PVT. LTD.</h2>
             <p style="color: #4A5568; margin: 0; font-size: 12px;">Qutub Vihar, Dwarka, New Delhi</p>
@@ -121,11 +120,13 @@ def get_html_payslip(emp_data):
                 <td colspan="2" style="padding: 10px; border: 1px solid #CBD5E0; text-align: center; font-size: 15px;">₹{net_pay}</td>
             </tr>
         </table>
+        
+        <p style="font-size: 10px; color: #718096; text-align: center; margin-top: 15px; font-style: italic;">Note: This is a system-generated secure digital payslip and does not require a physical signature or stamp.</p>
     </div>
     """
     return html_content
 
-# 3. SAFE DIRECT DATA LOADING
+# 3. DIRECT DATA LINK
 csv_file = "salary_data.csv"
 
 if not os.path.exists(csv_file):
@@ -138,11 +139,6 @@ else:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
-    # 🌟 NAVIGATION VIA SIDEBAR DROP-DOWN (Tabs glitch bypass)
-    st.sidebar.title("📌 Menu Options")
-    menu = st.sidebar.selectbox("Choose Action:", ["🔑 Employee Login", "🔄 Change Password"])
-
-    # OPTION 1: EMPLOYEE LOGIN
-    if menu == "🔑 Employee Login":
-        st.subheader("Apna Account Login Karein")
-        
+    st.title("🔒 Secure Corporate PaySlip Portal")
+    
+    # 🌟 SOLID COMPACT REGISTERED BLOCK (Form isolation block)
