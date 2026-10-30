@@ -8,7 +8,27 @@ import io
 import os
 
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
-st.title("🔒 Secure Corporate PaySlip Portal")
+
+# 🔒 HACK TO HIDE STREAMLIT TOOLBAR, FOOTER & CORNER SETTINGS MENU FOR EMPLOYEES
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    stDecoration {display:none;}
+    [data-testid="stToolbar"] {visibility: hidden !important;}
+    [data-testid="stStatusWidget"] {visibility: hidden !important;}
+    .viewerBadge_container__174fd {display: none !important;}
+    </style>
+    """, unsafe_allow_html=True)
+
+# 1. INITIALIZE SESSION STATES FOR PRIVATE LOGIN
+if 'is_authenticated' not in st.session_state:
+    st.session_state['is_authenticated'] = False
+if 'logged_in_user' not in st.session_state:
+    st.session_state['logged_in_user'] = None
+
+excel_file = "salary_data.xlsx"
 
 # 📄 DYNAMIC PDF GENERATION FUNCTION (ReportLab Powered)
 def generate_pdf(emp_data):
@@ -118,66 +138,54 @@ def generate_pdf(emp_data):
     buffer.seek(0)
     return buffer
 
-# --- BACKGROUND DATA READ INITIALIZATION ---
-excel_file = "salary_data.xlsx"
-
-if os.path.exists(excel_file):
+# --- SECURE DATA GATEKEEPER & WORKSPACE ROUTING ---
+if not os.path.exists(excel_file):
+    st.error(f"❌ Master Database File '{excel_file}' missing from server root directory.")
+else:
     df = pd.read_excel(excel_file)
     df.fillna(0, inplace=True)
     
-    # Process core columns data types
     for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
-    tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
-
-    # TAB 1: USER AUTHENTICATION & REPORT ACQUISITION
-    with tab1:
-        st.subheader("Apna Account Login Karein")
-        with st.form("login_form"):
-            emp_code_input = st.text_input("Employee Code:").strip()
-            password_input = st.text_input("Password:", type="password").strip()
-            submit_button = st.form_submit_button(label="Login & Download Payslip")
-
-        if submit_button:
-            if emp_code_input and password_input:
-                result = df[(df['EmployeeCode'] == emp_code_input) & (df['Password'] == password_input)]
-                
-                if not result.empty:
-                    emp_data = result.iloc[0].to_dict()
-                    st.success(f"Welcome {emp_data.get('Employee Name')}!")
-                    
-                    pdf_data = generate_pdf(emp_data)
-                    
-                    st.download_button(
-                        label="📥 Download Salary Slip (PDF Format)",
-                        data=pdf_data,
-                        file_name=f"PaySlip_{emp_code_input}.pdf",
-                        mime="application/pdf"
-                    )
-                else:
-                    st.error("❌ Incorrect Employee Code or Password. Please try again.")
-            else:
-                st.warning("Please fill in both fields.")
-
-    # TAB 2: UTILITY CREDENTIAL MODIFICATION BLOCK
-    with tab2:
-        st.subheader("Change Portal Password")
-        with st.form("change_password_form"):
-            chg_emp_code = st.text_input("Employee Code").strip()
-            old_password = st.text_input("Old Password", type="password").strip()
-            new_password = st.text_input("New Password", type="password").strip()
-            change_btn = st.form_submit_button("Update Password")
+    # GATEKEEPER MODE: Render ONLY the login screen if not authenticated
+    if not st.session_state['is_authenticated']:
+        st.title("🔒 Secure Corporate PaySlip Portal")
+        st.subheader("Login required to access the application")
+        
+        with st.form("portal_gateway_login"):
+            input_user = st.text_input("Employee Code:").strip()
+            input_pass = st.text_input("Password:", type="password").strip()
+            login_btn = st.form_submit_button("Access Portal")
             
-            if change_btn:
-                if chg_emp_code and old_password and new_password:
-                    idx = df[(df['EmployeeCode'] == chg_emp_code) & (df['Password'] == old_password)].index
-                    if not idx.empty:
-                        df.loc[idx, 'Password'] = new_password
-                        df.to_excel(excel_file, index=False)
-                        st.success("Password changed successfully in your database!")
+            if login_btn:
+                if input_user and input_pass:
+                    match = df[(df['EmployeeCode'] == input_user) & (df['Password'] == input_pass)]
+                    if not match.empty:
+                        st.session_state['is_authenticated'] = True
+                        st.session_state['logged_in_user'] = input_user
+                        st.success("Authorized! Loading profile dashboard...")
+                        st.rerun()
                     else:
-                        st.error("Verification failed. Current credentials record not matched.")
-else:
-    st.error(f"❌ Master Database Error: '{excel_file}' file repository system settings ke andar missing hai. Please verify your files structure.")
+                        st.error("❌ Invalid Employee Code or Password.")
+                else:
+                    st.warning("Please fill in both fields.")
+    else:
+        # SECURE VIEWPORT FOR AUTHENTICATED USERS
+        st.title("🔒 Secure Corporate PaySlip Portal")
+        
+        # Sidebar clean sign-out system
+        st.sidebar.title("🔐 Secure Session")
+        st.sidebar.write(f"Account: **{st.session_state['logged_in_user']}**")
+        if st.sidebar.button("Logout Session 🚪"):
+            st.session_state['is_authenticated'] = False
+            st.session_state['logged_in_user'] = None
+            st.rerun()
+
+        tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
+        current_emp = st.session_state['logged_in_user']
+
+        # TAB 1: WORKSPACE & PDF DOWNLOAD
+        with tab1:
+            user_row = df[df['EmployeeCode'] == current_emp]
