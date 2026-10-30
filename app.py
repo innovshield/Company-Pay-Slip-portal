@@ -1,9 +1,20 @@
 import streamlit as st
 import pandas as pd
-import os
 
 # 1. PAGE CONFIGURATION
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
+
+# INITIALIZE SESSION STATES
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+if 'user_role' not in st.session_state:
+    st.session_state['user_role'] = None
+if 'emp_code' not in st.session_state:
+    st.session_state['emp_code'] = None
+
+# ADMIN CREDENTIALS CONSTANT
+ADMIN_USER = "admin"
+ADMIN_PASS = "admin123" # Change this as per your security
 
 # SAFE NUMBER CONVERTER
 def safe_num(val):
@@ -15,7 +26,7 @@ def safe_num(val):
     except:
         return 0
 
-# HTML PAYSLIP RENDERER FOR SCREEN & DOWNLOAD
+# HTML PAYSLIP RENDERER
 def get_html_payslip(emp_data):
     fixed_gross = safe_num(emp_data.get('Fixed Gross', 0))
     total_earn = safe_num(emp_data.get('Total Earn', 0))
@@ -108,36 +119,30 @@ def get_html_payslip(emp_data):
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Notice Pay Deduct</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Notice Pay', 0))}</td>
             </tr>
-            <tr style="background-color: #F7FAFC; font-weight: bold;">
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">Gross Totals</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">{fixed_gross}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">{total_earn}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">Total Deduction</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">{total_dedu}</td>
-            </tr>
-            <tr style="background-color: #EBF8FF; font-weight: bold; font-size: 13px; color: #2B6CB0;">
-                <td colspan="3" style="padding: 10px; border: 1px solid #CBD5E0;">NET PAYABLE TAKE-HOME SALARY</td>
-                <td colspan="2" style="padding: 10px; border: 1px solid #CBD5E0; text-align: center; font-size: 15px;">₹{net_pay}</td>
+            <tr style="background-color: #E2E8F0; font-weight: bold;">
+                <td style="padding: 6px; border: 1px solid #CBD5E0;">Total Gross / Earnings</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{fixed_gross}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{total_earn}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0;">Total Deductions</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{total_dedu}</td>
             </tr>
         </table>
         
-        <p style="font-size: 10px; color: #718096; text-align: center; margin-top: 15px; font-style: italic;">Note: This is a system-generated secure digital payslip and does not require a physical signature or stamp.</p>
+        <div style="background-color: #1A365D; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 14px; font-weight: bold;">
+            NET TAKE HOME PAY: ₹{net_pay}/-
+        </div>
     </div>
     """
     return html_content
 
-# 3. ABSOLUTE FIXED CORE DATA INTERACTION
-csv_file = "salary_data.csv"
-
-if not os.path.exists(csv_file):
-    st.error("🛑 Galti: Folder mein 'salary_data.csv' file nahi mili!")
-else:
-    df = pd.read_csv(csv_file)
-    df.fillna(0, inplace=True)
-    for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.strip()
-
-    st.title("🔒 Secure Corporate PaySlip Portal")
+# --- APPLICATION ROUTING BIASED ON LOGIN ---
+if not st.session_state['logged_in']:
+    st.title("🔒 Corporate PaySlip Portal - Login")
     
-    # Dono proper Tabs banayein
+    login_tab, admin_tab = st.tabs(["👤 Employee Login", "🛠️ Admin Portal"])
+    
+    with login_tab:
+        st.subheader("Employee Sign-In")
+        emp_code = st.text_input("Employee Code (e.g. EMP001)", key="emp_user").strip()
+        # You can match mobile number or specific password from Excel sheet later
+        emp_mob = st.text_input("Registered Mobile No / Password", type="password", key="emp_pass").strip()
