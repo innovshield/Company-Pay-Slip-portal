@@ -9,7 +9,7 @@ import io
 # 1. पेज कॉन्फ़िगरेशन (सबसे ऊपर होना अनिवार्य है)
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
 
-# 🔒 CSS कोड: तीन डॉट्स (MainMenu), हेडर और फुटर को छुपाने के लिए
+# 🔒 CSS कोड: तीन डॉट्स (MainMenu), हेडर और फुटर को पूरी तरह छुपाने के लिए
 hide_streamlit_style = """
             <style>
             #MainMenu {visibility: hidden;}
@@ -19,7 +19,7 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# 🔑 सुरक्षित एम्प्लोयी डेटाबेस (Testing के लिए Credentials)
+# 🔑 सुरक्षित एम्प्लोयी डेटाबेस (Credentials)
 EMPLOYEE_DB = {
     "is-10245": {
         "password": "password123",
@@ -69,7 +69,7 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>Bank Account:</b> {emp_data.get('BankAccount', 'N/A')}", normal_style), Paragraph(f"<b>PAN / UAN:</b> {emp_data.get('PAN_UAN', 'N/A')}", normal_style)]
     ]
     
-    # 270 और 270 चौड़ाई भर दी है (कुल 540)
+    # ऑटोमैटिक विड्थ एलोकेशन (बिना किसी हार्डकोडेड नंबर के)
     info_table = Table(info_data, colWidths=[270, 270])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -102,7 +102,6 @@ def generate_pdf(emp_data):
         [Paragraph("<b>Total Earnings</b>", bold_style), Paragraph(f"<b>{total_earnings:,.2f}</b>", bold_style), Paragraph("<b>Total Deductions</b>", bold_style), Paragraph(f"<b>{total_deductions:,.2f}</b>", bold_style)]
     ]
     
-    # यहाँ भी चारों कॉलम की चौड़ाई 160, 110, 160, 110 पूरी लिख दी है
     financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[160, 110, 160, 110])
     financial_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")),
@@ -134,6 +133,7 @@ def generate_pdf(emp_data):
 st.title("🔒 Secure Corporate PaySlip Portal")
 st.write("Please enter your credentials to download your Pay Slip.")
 
+# Session State सेटअप
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.emp_data = None
@@ -157,10 +157,11 @@ if st.button("Verify & Access Pay Slip"):
         st.error("Employee Code not found. Please check the code and try again.")
         st.session_state.logged_in = False
 
+# सफल लॉगिन होने पर डाउनलोड बटन दिखाएं
 if st.session_state.logged_in and st.session_state.emp_data:
     st.success(f"Welcome, {st.session_state.emp_data['Employee Name']}! Your Pay Slip is verified.")
     
-    pdf_bytes = generate_pdf(st.session_state.emp_state_data if 'emp_state_data' in st.session_state else st.session_state.emp_data)
+    pdf_bytes = generate_pdf(st.session_state.emp_data)
     
     st.download_button(
         label="📥 Download PaySlip PDF",
