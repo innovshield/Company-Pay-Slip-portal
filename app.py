@@ -1,3 +1,12 @@
+import sys
+import subprocess
+
+# 🌟 AUTOMATIC DEPENDENCY CHECKER (Bina requirements file ke automatic installation)
+try:
+    import openpyxl
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl"])
+
 import streamlit as st
 import pandas as pd
 
@@ -130,12 +139,3 @@ def get_html_payslip(emp_data):
     return html_content
 
 # 3. APPLICATION STARTPOINT
-excel_file = "salary_data.xlsx"
-
-df = pd.read_excel(excel_file)
-df.fillna(0, inplace=True)
-
-for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
-    if col in df.columns:
-        df[col] = df[col].astype(str).str.strip()
-
