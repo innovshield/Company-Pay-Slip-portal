@@ -188,4 +188,4 @@ else:
                 available_months = user_records['Month'].unique().tolist()
                 selected_month = st.selectbox("Select Month for PaySlip:", available_months)
                 
-                # SAFE INDICES RESOLUTION IMPLEMENTED HERE FOR DATA CONVERSION
+                # Sahi row select karne ke liye .iloc[0] lagaya hai safely
