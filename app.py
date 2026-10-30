@@ -35,10 +35,10 @@ def create_mock_data():
             'Designation': ['Software Engineer', 'HR Manager'],
             'Month': ['October 2026', 'October 2026'],
             'Basic':,
-            'HRA':,          # Test case: EMP001 का HRA 0 है, तो यह स्लिप में नहीं दिखेगा
-            'Special Allowance':, # Test case: EMP002 का यह कम्पोनेंट 0 है
+            'HRA':,                 # Test case: HRA is 0 for EMP001 (will be hidden)
+            'Special Allowance':,    # Test case: Special Allowance is 0 for EMP002 (will be hidden)
             'Deductions':,
-            'PF': [0, 1800]             # Test case: PF 0 होने पर हाइड हो जाएगा
+            'PF': [1800, 0]                    # Test case: PF is 0 for EMP002 (will be hidden)
         })
         mock_df.to_excel(excel_file, index=False)
 
@@ -46,34 +46,29 @@ create_mock_data()
 
 # 📄 SAFE FUNCTION TO GENERATE COMPLETE PAYSLIP STRUCTURE (DYNAMIC ROWS)
 def get_html_payslip(emp):
-    # यहाँ उन कॉलम्स की लिस्ट है जो Earnings और Deductions में आ सकते हैं
     earning_keys = ['Basic', 'HRA', 'Special Allowance', 'Dearness Allowance', 'Medical Allowance']
     deduction_keys = ['Deductions', 'PF', 'Professional Tax', 'TDS']
     
-    # केवल वो कम्पोनेंट्स रखें जिनकी वैल्यू 0 से बड़ी है
-    active_earnings = {k: float(emp.get(k, 0)) for k in earning_keys if float(emp.get(k, 0)) > 0}
-    active_deductions = {k: float(emp.get(k, 0)) for k in deduction_keys if float(emp.get(k, 0)) > 0}
+    # Filter out keys with 0 or Null values dynamically
+    active_earnings = {k: float(emp.get(k, 0)) for k in earning_keys if pd.notna(emp.get(k)) and float(emp.get(k, 0)) > 0}
+    active_deductions = {k: float(emp.get(k, 0)) for k in deduction_keys if pd.notna(emp.get(k)) and float(emp.get(k, 0)) > 0}
     
     total_earnings = sum(active_earnings.values())
     total_deductions = sum(active_deductions.values())
     net_salary = total_earnings - total_deductions
 
-    # दोनों साइड की रोज़ (Rows) को बराबर करने के लिए लिस्ट तैयार करना
     earn_items = list(active_earnings.items())
     deduct_items = list(active_deductions.items())
     max_rows = max(len(earn_items), len(deduct_items))
     
-    # डायनामिक टेबल रोज़ जनरेट करना
     table_rows_html = ""
     for i in range(max_rows):
-        # Earnings साइड
         if i < len(earn_items):
             e_name, e_val = earn_items[i]
             earn_td = f"<td style='padding: 8px;'>{e_name}</td><td style='padding: 8px; text-align: right;'>{e_val:,.2f}</td>"
         else:
             earn_td = "<td style='padding: 8px;'></td><td style='padding: 8px; text-align: right;'></td>"
             
-        # Deductions साइड
         if i < len(deduct_items):
             d_name, d_val = deduct_items[i]
             deduct_td = f"<td style='padding: 8px;'>{d_name}</td><td style='padding: 8px; text-align: right;'>{d_val:,.2f}</td>"
@@ -138,7 +133,7 @@ if not st.session_state['is_authenticated']:
                     
                     if not match.empty:
                         st.session_state['is_authenticated'] = True
-                        st.session_state['logged_in_user'] = match.iloc[0].to_dict()
+                        st.session_state['logged_in_user'] = match.iloc.to_dict()
                         st.rerun()
                     else:
                         st.error("Invalid Employee Code or Password.")
@@ -150,7 +145,7 @@ else:
     # 3. SECURE PAYSLIP DASHBOARD
     user_data = st.session_state['logged_in_user']
     
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns()
     with col1:
         st.success(f"Welcome, {user_data['Employee Name']}")
     with col2:
