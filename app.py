@@ -5,15 +5,42 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 import io
-import os
 
+# 1. पेज कॉन्फ़िगरेशन (सबसे ऊपर होना चाहिए)
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
-st.title("🔒 Secure Corporate PaySlip Portal")
 
-# 📄 DYNAMIC PDF GENERATION FUNCTION (ReportLab Powered)
+# नकली डेटाबेस (Secure Database Setup)
+# लाइव ऐप में आप इसे अपने एक्सेल या SQL डेटाबेस से जोड़ सकते हैं
+EMPLOYEE_DB = {
+    "IS-10245": {
+        "password": "password123",
+        "Month": "October 2026",
+        "Employee Name": "Aarav Sharma",
+        "Department": "Engineering",
+        "Designation": "Senior Cloud Architect",
+        "BankAccount": "XXXXXX123456",
+        "PAN_UAN": "ABCDE1234F",
+        "Basic": 75000,
+        "HRA": 30000,
+        "Special Allowance": 15000,
+        "PF Deduction": 9000,
+        "Professional Tax": 200
+    }
+}
+
+# 📄 DYNAMIC PDF GENERATION FUNCTION
 def generate_pdf(emp_data):
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    # पेज मार्जिन सेट करें
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=letter, 
+        rightMargin=30, 
+        leftMargin=30, 
+        topMargin=30, 
+        bottomMargin=30,
+        title="Employee PaySlip"
+    )
     story = []
     
     styles = getSampleStyleSheet()
@@ -23,161 +50,109 @@ def generate_pdf(emp_data):
     bold_style = ParagraphStyle('BoldStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, leading=10)
     header_text_style = ParagraphStyle('HeaderTextStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, textColor=colors.white)
     
-    # Corporate Branding Headers
+    # कंपनी हेडर ब्रांडिंग
     story.append(Paragraph("<b>INNOVSHIELD MANAGEMENT PVT. LTD.</b>", title_style))
     story.append(Paragraph("Qutub Vihar, Dwarka, New Delhi", subtitle_style))
     story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
     story.append(Spacer(1, 5))
     
-    # Employee Master Profile Information Block (Fixed colWidths)
+    # एम्प्लोयी मास्टर प्रोफाइल ब्लॉक (कॉलम की चौड़ाई फिक्स कर दी गई है ताकि कोड न दिखे)
     info_data = [
-        [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', '')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', '')}", normal_style)],
-        [Paragraph(f"<b>Location:</b> {emp_data.get('Location', '')}", normal_style), Paragraph(f"<b>A/c No:</b> {emp_data.get('Ac No', '')}", normal_style), Paragraph(f"<b>UAN No:</b> {emp_data.get('UAN NO', '')}", normal_style)],
-        [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
+        [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', 'N/A')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', 'N/A')}", normal_style)],
+        [Paragraph(f"<b>Department:</b> {emp_data.get('Department', 'N/A')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', 'N/A')}", normal_style)],
+        [Paragraph(f"<b>Bank Account:</b> {emp_data.get('BankAccount', 'N/A')}", normal_style), Paragraph(f"<b>PAN / UAN:</b> {emp_data.get('PAN_UAN', 'N/A')}", normal_style)]
     ]
-    info_table = Table(info_data, colWidths=[150, 200, 190])
+    
+    info_table = Table(info_data, colWidths=[275, 275])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
+        ('PADDING', (0,0), (-1,-1), 6),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F7FAFC")),
-        ('PADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(info_table)
     story.append(Spacer(1, 15))
     
-    # Master Matrix Breakdown Configuration
-    all_components = [
-        ("Basic Salary", "Fixed Basic", "Earn Basic", "Provident Fund (PF)", "PF"),
-        ("HRA", "Fixed HRA", "Earn HRA", "ESIC", "ESIC"),
-        ("Statutory Bonus", "Fixed Stat Bonus", "Earn Stat Bon", "LWF", "LWF"),
-        ("Special Allowance", "Fixed Special", "Earn Special", "EWF Deduc", "EWF"),
-        ("Leave Encashment", None, "Leave Encash", "Ship/COD Loss", "Ship/COD Loss"),
-        ("Attendance Bonus", None, "Atte Bonus", "Salary Advance", "Advance"),
-        ("Mobile Allowance", None, "Mobile Allo", "Notice Pay Deduct", "Notice Pay"),
-        ("Special Incentive", None, "Special Incentive", None, None),
-        ("Group Incentive", None, "Group Incentive", None, None),
-        ("Arrears / Other", None, "Arrears", None, None),
-        ("Incentive / Performance", None, "Incentive", None, None)
+    # सैलरी ब्रेकडाउन
+    breakdown_headers = [
+        [Paragraph("Earnings Component", header_text_style), Paragraph("Amount (₹)", header_text_style),
+         Paragraph("Deductions Component", header_text_style), Paragraph("Amount (₹)", header_text_style)]
     ]
     
-    salary_table_data = [
-        [Paragraph("Salary Component", header_text_style), Paragraph("Fixed Rate (₹)", header_text_style), 
-         Paragraph("Earned Amount (₹)", header_text_style), Paragraph("Deductions", header_text_style), Paragraph("Amount (₹)", header_text_style)]
+    basic = float(emp_data.get('Basic', 0))
+    hra = float(emp_data.get('HRA', 0))
+    allowance = float(emp_data.get('Special Allowance', 0))
+    pf = float(emp_data.get('PF Deduction', 0))
+    tax = float(emp_data.get('Professional Tax', 0))
+    
+    total_earnings = basic + hra + allowance
+    total_deductions = pf + tax
+    net_pay = total_earnings - total_deductions
+    
+    breakdown_rows = [
+        [Paragraph("Basic Salary", normal_style), Paragraph(f"{basic:,.2f}", normal_style), Paragraph("Provident Fund (PF)", normal_style), Paragraph(f"{pf:,.2f}", normal_style)],
+        [Paragraph("House Rent Allowance (HRA)", normal_style), Paragraph(f"{hra:,.2f}", normal_style), Paragraph("Professional Tax", normal_style), Paragraph(f"{tax:,.2f}", normal_style)],
+        [Paragraph("Special Allowance", normal_style), Paragraph(f"{allowance:,.2f}", normal_style), Paragraph("", normal_style), Paragraph("", normal_style)],
+        [Paragraph("<b>Total Earnings</b>", bold_style), Paragraph(f"<b>{total_earnings:,.2f}</b>", bold_style), Paragraph("<b>Total Deductions</b>", bold_style), Paragraph(f"<b>{total_deductions:,.2f}</b>", bold_style)]
     ]
     
-    # Dynamic Filtering Logic to exclude zeros safely
-    for comp, f_key, e_key, ded, d_key in all_components:
-        f_val = float(emp_data.get(f_key, 0)) if f_key and emp_data.get(f_key) else 0.0
-        e_val = float(emp_data.get(e_key, 0)) if e_key and emp_data.get(e_key) else 0.0
-        d_val = float(emp_data.get(d_key, 0)) if d_key and emp_data.get(d_key) else 0.0
-        
-        if f_val == 0.0 and e_val == 0.0 and d_val == 0.0 and not ded:
-            continue
-            
-        f_text = str(int(f_val)) if f_key and f_val > 0 else "-"
-        e_text = str(int(e_val)) if e_val > 0 else "-"
-        d_text = str(int(d_val)) if d_key and d_val > 0 else "-"
-        ded_text = ded if ded and (d_val > 0 or comp in ["Basic Salary", "HRA"]) else ""
-        
-        comp_text = comp if (f_val > 0 or e_val > 0 or comp in ["Basic Salary", "HRA"]) else ""
-        if comp_text == "" and ded_text == "":
-            continue
-            
-        salary_table_data.append([
-            Paragraph(comp_text, normal_style), Paragraph(f_text, normal_style), Paragraph(e_text, normal_style),
-            Paragraph(ded_text, normal_style), Paragraph(d_text if ded_text else "", normal_style)
-        ])
-        
-    # Aggregate Summary Row
-    salary_table_data.append([
-        Paragraph("<b>Gross Total</b>", bold_style), Paragraph(f"<b>{int(float(emp_data.get('Fixed Gross', 0)))}</b>", bold_style), 
-        Paragraph(f"<b>{int(float(emp_data.get('Total Earn', 0)))}</b>", bold_style), Paragraph("<b>Total Deduction</b>", bold_style), Paragraph(f"<b>{int(float(emp_data.get('Total Dedu', 0)))}</b>", bold_style)
-    ])
-    
-    # Final Payout Matrix Row
-    salary_table_data.append([
-        Paragraph(f"<b>NET PAYABLE TAKE-HOME SALARY: ₹{int(float(emp_data.get('Net Pay', 0)))}</b>", ParagraphStyle('NetStyle', parent=bold_style, fontSize=9, textColor=colors.HexColor("#2B6CB0"))), 
-        "", "", "", ""
-    ])
-    
-    sal_table = Table(salary_table_data, colWidths=[140, 80, 100, 130, 90])
-    sal_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")), 
-        ('GRID', (0,0), (-1,-2), 0.5, colors.HexColor("#CBD5E0")),
-        ('SPAN', (0,-1), (-1,-1)), 
-        ('BACKGROUND', (0,-1), (-1,-1), colors.HexColor("#EBF8FF")), 
-        ('PADDING', (0,0), (-1,-1), 5),
-        ('ALIGN', (1,1), (2,-2), 'CENTER'),
-        ('ALIGN', (4,1), (4,-2), 'CENTER'),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[160, 115, 160, 115])
+    financial_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
+        ('PADDING', (0,0), (-1,-1), 6),
+        ('ALIGN', (1,1), (1,-1), 'RIGHT'),
+        ('ALIGN', (3,1), (3,-1), 'RIGHT'),
+        ('BACKGROUND', (0,-1), (-1,-1), colors.HexColor("#EDF2F7")),
     ]))
-    story.append(sal_table)
-    story.append(Spacer(1, 20))
+    story.append(financial_table)
+    story.append(Spacer(1, 15))
     
-    story.append(Paragraph("<i>Note: This is a system-generated secure slip and does not require a physical stamp or signature.</i>", normal_style))
+    # फाइनल इन-हैंड सैलरी डिस्प्ले
+    net_pay_data = [[Paragraph(f"<b>NET TAKE-HOME PAY:</b> ₹ {net_pay:,.2f}", bold_style)]]
+    net_pay_table = Table(net_pay_data, colWidths=[550])
+    net_pay_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#C6F6D5")), 
+        ('BORDER', (0,0), (-1,-1), 1, colors.HexColor("#38A169")),
+        ('PADDING', (0,0), (-1,-1), 8),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+    ]))
+    story.append(net_pay_table)
+    
     doc.build(story)
     buffer.seek(0)
-    return buffer
+    return buffer.getvalue()
 
-# --- BACKGROUND DATA READ INITIALIZATION ---
-excel_file = "salary_data.xlsx"
 
-if os.path.exists(excel_file):
-    df = pd.read_excel(excel_file)
-    df.fillna(0, inplace=True)
-    
-    # Process core columns data types
-    for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.strip()
+# 🔒 SECURE LOGIN & DOWNLOAD PORTAL INTERFACE
+st.title("🔒 Secure Corporate PaySlip Portal")
+st.write("Please enter your credentials to download your Pay Slip.")
 
-    tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
+# इनपुट बॉक्स (UI)
+emp_code = st.text_input("Employee Code (e.g., IS-10245)")
+password = st.text_input("Password", type="password")
 
-    # TAB 1: USER AUTHENTICATION & REPORT ACQUISITION
-    with tab1:
-        st.subheader("Apna Account Login Karein")
-        with st.form("login_form"):
-            emp_code_input = st.text_input("Employee Code:").strip()
-            password_input = st.text_input("Password:", type="password").strip()
-            submit_button = st.form_submit_button(label="Login & Download Payslip")
-
-        if submit_button:
-            if emp_code_input and password_input:
-                result = df[(df['EmployeeCode'] == emp_code_input) & (df['Password'] == password_input)]
-                
-                if not result.empty:
-                    emp_data = result.iloc[0].to_dict()
-                    st.success(f"Welcome {emp_data.get('Employee Name')}!")
-                    
-                    pdf_data = generate_pdf(emp_data)
-                    
-                    st.download_button(
-                        label="📥 Download Salary Slip (PDF Format)",
-                        data=pdf_data,
-                        file_name=f"PaySlip_{emp_code_input}.pdf",
-                        mime="application/pdf"
-                    )
-                else:
-                    st.error("❌ Incorrect Employee Code or Password. Please try again.")
-            else:
-                st.warning("Please fill in both fields.")
-
-    # TAB 2: UTILITY CREDENTIAL MODIFICATION BLOCK
-    with tab2:
-        st.subheader("Change Portal Password")
-        with st.form("change_password_form"):
-            chg_emp_code = st.text_input("Employee Code").strip()
-            old_password = st.text_input("Old Password", type="password").strip()
-            new_password = st.text_input("New Password", type="password").strip()
-            change_btn = st.form_submit_button("Update Password")
+if st.button("Verify & Access Pay Slip"):
+    # सुरक्षा जांच (Authentication Check)
+    if emp_code in EMPLOYEE_DB:
+        if EMPLOYEE_DB[emp_code]["password"] == password:
+            st.success(f"Welcome, {EMPLOYEE_DB[emp_code]['Employee Name']}! Your Pay Slip is ready.")
             
-            if change_btn:
-                if chg_emp_code and old_password and new_password:
-                    idx = df[(df['EmployeeCode'] == chg_emp_code) & (df['Password'] == old_password)].index
-                    if not idx.empty:
-                        df.loc[idx, 'Password'] = new_password
-                        df.to_excel(excel_file, index=False)
-                        st.success("Password changed successfully in your database!")
-                    else:
-                        st.error("Verification failed. Current credentials record not matched.")
-else:
-    st.error(f"❌ Master Database Error: '{excel_file}' file repository system settings ke andar missing hai. Please verify your files structure.")
+            # डेटा तैयार करें
+            emp_data = EMPLOYEE_DB[emp_code]
+            emp_data["EmployeeCode"] = emp_code
+            
+            # बैकएंड में चुपचाप PDF बनाएं (स्क्रीन पर कुछ नहीं दिखेगा)
+            pdf_bytes = generate_pdf(emp_data)
+            
+            # सुरक्षित डाउनलोड बटन
+            st.download_button(
+                label="📥 Download PaySlip PDF",
+                data=pdf_bytes,
+                file_name=f"PaySlip_{emp_code}.pdf",
+                mime="application/pdf"
+            )
+        else:
+            st.error("Incorrect Password. Please try again.")
+    else:
+        st.error("Employee Code not found.")
