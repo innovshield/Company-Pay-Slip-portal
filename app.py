@@ -139,4 +139,4 @@ with tab3:
 with tab1:
     if 'salary_df' not in st.session_state:
         st.warning("⚠️ Kripya sabse pehle 'Admin Upload' tab par jaakar apni Excel File upload karein!")
-    else:
+
