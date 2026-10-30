@@ -1,19 +1,4 @@
 import streamlit as st
-import os
-import sys
-
-# 🌟 STREAMLIT COMPATIBLE LIFECYCLE AUTO-INSTALLER
-@st.cache_resource
-def install_dependencies():
-    try:
-        import openpyxl
-    except ImportError:
-        import subprocess
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl"])
-
-# Run the installer first
-install_dependencies()
-
 import pandas as pd
 
 # 1. PAGE CONFIGURATION
@@ -145,3 +130,16 @@ def get_html_payslip(emp_data):
     return html_content
 
 # 3. APPLICATION STARTPOINT
+excel_file = "salary_data.xlsx"
+
+df = pd.read_excel(excel_file)
+df.fillna(0, inplace=True)
+
+for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
+    if col in df.columns:
+        df[col] = df[col].astype(str).str.strip()
+
+tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
+
+# TAB 1: LOGIN
+with tab1:
