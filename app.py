@@ -26,53 +26,59 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 📄 SAFE FUNCTION TO GENERATE COMPLETE PAYSLIP STRUCTURE WITH DYNAMIC ROWS
+# 📄 SAFE FUNCTION TO GENERATE COMPLETE PAYSLIP STRUCTURE
 def get_html_payslip(emp):
-    # Helper to clean numeric values (handles NaNs and missing keys safely)
+    # Function to validate and clean numeric data (handles NaNs and blanks safely)
     def clean_val(key):
         val = emp.get(key, 0)
         return 0 if pd.isna(val) else float(val)
 
-    # Fetch values
+    # Fetch and clean raw values
     basic = clean_val('Basic')
     hra = clean_val('HRA')
     allowance = clean_val('Special Allowance')
     deductions = clean_val('Deductions')
     
-    # Calculate Totals
+    # Calculate Dynamic Totals
     gross_earnings = basic + hra + allowance
     net_salary = gross_earnings - deductions
 
-    # Prepare dynamic rows for Earnings
-    earnings_list = []
-    if basic > 0: earnings_list.append(("Basic Salary", basic))
-    if hra > 0: earnings_list.append(("HRA", hra))
-    if allowance > 0: earnings_list.append(("Special Allowance", allowance))
-    
-    # Prepare dynamic rows for Deductions
-    deductions_list = []
-    if deductions > 0: deductions_list.append(("Deductions / Loss of Pay", deductions))
+    # 🌟 DYNAMICALLY GENERATE ROWS ONLY IF COMPONENT VALUE > 0
+    earnings_rows = []
+    if basic > 0:
+        earnings_rows.append(f"""
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #EDF2F7;">Basic Salary</td>
+                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #EDF2F7;">{basic:,.2f}</td>
+            </tr>
+        """)
+    if hra > 0:
+        earnings_rows.append(f"""
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #EDF2F7;">HRA</td>
+                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #EDF2F7;">{hra:,.2f}</td>
+            </tr>
+        """)
+    if allowance > 0:
+        earnings_rows.append(f"""
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #EDF2F7;">Special Allowance</td>
+                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #EDF2F7;">{allowance:,.2f}</td>
+            </tr>
+        """)
 
-    # Zip lists together to build matching table rows side-by-side
-    table_rows_html = ""
-    max_rows = max(len(earnings_list), len(deductions_list))
-    
-    for i in range(max_rows):
-        # Earnings column logic
-        if i < len(earnings_list):
-            earn_name, earn_val = earnings_list[i]
-            earn_tds = f"<td style='padding: 8px; border-bottom: 1px solid #EDF2F7;'>{earn_name}</td><td style='padding: 8px; text-align: right; border-bottom: 1px solid #EDF2F7;'>{earn_val:,.2f}</td>"
-        else:
-            earn_tds = "<td style='padding: 8px; border-bottom: 1px solid #EDF2F7;'>-</td><td style='padding: 8px; text-align: right; border-bottom: 1px solid #EDF2F7;'>0.00</td>"
-            
-        # Deductions column logic
-        if i < len(deductions_list):
-            ded_name, ded_val = deductions_list[i]
-            ded_tds = f"<td style='padding: 8px; border-bottom: 1px solid #EDF2F7;'>{ded_name}</td><td style='padding: 8px; text-align: right; border-bottom: 1px solid #EDF2F7;'>{ded_val:,.2f}</td>"
-        else:
-            ded_tds = "<td style='padding: 8px; border-bottom: 1px solid #EDF2F7;'>-</td><td style='padding: 8px; text-align: right; border-bottom: 1px solid #EDF2F7;'>0.00</td>"
-            
-        table_rows_html += f"<tr>{earn_tds}{ded_tds}</tr>"
+    deductions_rows = []
+    if deductions > 0:
+        deductions_rows.append(f"""
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #EDF2F7;">Deductions / Loss of Pay</td>
+                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #EDF2F7;">{deductions:,.2f}</td>
+            </tr>
+        """)
+
+    # Combine the arrays into strings safely
+    earnings_html = "".join(earnings_rows) if earnings_rows else "<tr><td colspan='2' style='padding: 8px; text-align: center; color: #A0AEC0;'>No Earnings This Cycle</td></tr>"
+    deductions_html = "".join(deductions_rows) if deductions_rows else "<tr><td colspan='2' style='padding: 8px; text-align: center; color: #A0AEC0;'>No Deductions This Cycle</td></tr>"
 
     html_layout = f"""
     <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #CBD5E0; background-color: #FFF; border-radius: 8px; color: #333;">
@@ -83,7 +89,7 @@ def get_html_payslip(emp):
         </div>
         <hr style="border: 0; border-top: 1px solid #E2E8F0; margin-bottom: 15px;"/>
         
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px;">
             <tr>
                 <td style="padding: 6px; width: 33%;"><b>Emp Code:</b> {emp.get('EmployeeCode', '')}</td>
                 <td style="padding: 6px; width: 33%;"><b>Name:</b> {emp.get('Employee Name', '')}</td>
@@ -91,21 +97,38 @@ def get_html_payslip(emp):
             </tr>
         </table>
         
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; border: 1px solid #E2E8F0;">
-            <tr style="background-color: #F7FAFC; border-bottom: 1px solid #E2E8F0;">
-                <th style="padding: 8px; text-align: left; width: 35%;">Earnings</th>
-                <th style="padding: 8px; text-align: right; width: 15%;">Amount (₹)</th>
-                <th style="padding: 8px; text-align: left; width: 35%;">Deductions</th>
-                <th style="padding: 8px; text-align: right; width: 15%;">Amount (₹)</th>
-            </tr>
-            {table_rows_html}
-            <tr style="background-color: #EDF2F7; font-weight: bold;">
-                <td style="padding: 8px;">Gross Earnings</td>
-                <td style="padding: 8px; text-align: right;">{gross_earnings:,.2f}</td>
-                <td style="padding: 8px;">Total Deductions</td>
-                <td style="padding: 8px; text-align: right;">{deductions:,.2f}</td>
-            </tr>
-        </table>
+        <!-- TWO COLUMN BLOCK FOR SIDE-BY-SIDE TABLES -->
+        <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+            <!-- Earnings Block -->
+            <div style="flex: 1;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #E2E8F0;">
+                    <tr style="background-color: #F7FAFC; border-bottom: 1px solid #E2E8F0;">
+                        <th style="padding: 8px; text-align: left;">Earnings</th>
+                        <th style="padding: 8px; text-align: right; width: 100px;">Amount (₹)</th>
+                    </tr>
+                    {earnings_html}
+                    <tr style="background-color: #EDF2F7; font-weight: bold;">
+                        <td style="padding: 8px;">Gross Earnings</td>
+                        <td style="padding: 8px; text-align: right;">{gross_earnings:,.2f}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Deductions Block -->
+            <div style="flex: 1;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #E2E8F0;">
+                    <tr style="background-color: #F7FAFC; border-bottom: 1px solid #E2E8F0;">
+                        <th style="padding: 8px; text-align: left;">Deductions</th>
+                        <th style="padding: 8px; text-align: right; width: 100px;">Amount (₹)</th>
+                    </tr>
+                    {deductions_html}
+                    <tr style="background-color: #EDF2F7; font-weight: bold;">
+                        <td style="padding: 8px;">Total Deductions</td>
+                        <td style="padding: 8px; text-align: right;">{deductions:,.2f}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
         
         <div style="background-color: #EBF8FF; padding: 12px; border-radius: 6px; text-align: right; font-size: 15px;">
             <b style="color: #2B6CB0;">Net Take-Home Salary: ₹{net_salary:,.2f}</b>
@@ -155,10 +178,10 @@ else:
     current_user_code = st.session_state['logged_in_user']
     user_records = df[df['EmployeeCode'].astype(str) == current_user_code]
     
-    # Grab user metadata safely using .iloc[0]
+    # Grab user metadata safely using .iloc
     user_first_record = user_records.iloc[0].to_dict()
     
-    # 🌟 FIXED: Passed 2 inside st.columns() to support modern Streamlit versions
+    # Fixed columns layout (Streamlit 2 columns fix)
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"### Welcome, **{user_first_record.get('Employee Name', 'Employee')}**")
@@ -179,5 +202,5 @@ else:
         
         final_record = user_records[user_records['Month'] == selected_month].iloc[0].to_dict()
         
-        # Render the Dynamic HTML Payslip
+        # Render the HTML Formatted Payslip
         st.markdown(get_html_payslip(final_record), unsafe_allow_html=True)
