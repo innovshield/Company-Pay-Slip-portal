@@ -9,7 +9,7 @@ import io
 # 1. पेज कॉन्फ़िगरेशन (सबसे ऊपर होना अनिवार्य है)
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
 
-# 🔒 CSS कोड: तीन डॉट्स (MainMenu) और फुटर (Footer) को छुपाने के लिए
+# 🔒 CSS कोड: तीन डॉट्स (MainMenu), हेडर और फुटर को छुपाने के लिए
 hide_streamlit_style = """
             <style>
             #MainMenu {visibility: hidden;}
@@ -19,9 +19,9 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# 🔑 सुरक्षित एम्प्लोयी डेटाबेस (Testing के लिए इसे हुबहू इनपुट करें)
+# 🔑 सुरक्षित एम्प्लोयी डेटाबेस (सभी कीज़ छोटे अक्षरों में रखी हैं ताकि लॉगिन आसान हो)
 EMPLOYEE_DB = {
-    "IS-10245": {
+    "is-10245": {
         "password": "password123",
         "Month": "October 2026",
         "Employee Name": "Aarav Sharma",
@@ -69,7 +69,7 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>Bank Account:</b> {emp_data.get('BankAccount', 'N/A')}", normal_style), Paragraph(f"<b>PAN / UAN:</b> {emp_data.get('PAN_UAN', 'N/A')}", normal_style)]
     ]
     
-    # फिक्स कॉलम विड्थ (540 टोटल विड्थ)
+    # तालिकाओं की चौड़ाई सेट की (270 + 270 = 540)
     info_table = Table(info_data, colWidths=[270, 270])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -102,7 +102,7 @@ def generate_pdf(emp_data):
         [Paragraph("<b>Total Earnings</b>", bold_style), Paragraph(f"<b>{total_earnings:,.2f}</b>", bold_style), Paragraph("<b>Total Deductions</b>", bold_style), Paragraph(f"<b>{total_deductions:,.2f}</b>", bold_style)]
     ]
     
-    # फिक्स कॉलम विड्थ ब्रेकडाउन तालिकाओं के लिए
+    # 160 + 110 + 160 + 110 = 540 कुल चौड़ाई
     financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[160, 110, 160, 110])
     financial_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")),
@@ -134,27 +134,42 @@ def generate_pdf(emp_data):
 st.title("🔒 Secure Corporate PaySlip Portal")
 st.write("Please enter your credentials to download your Pay Slip.")
 
-emp_code = st.text_input("Employee Code (e.g., IS-10245)").strip()
-password = st.text_input("Password", type="password")
+# Session State को इनिशियलाइज़ करना ताकि स्टेट बनी रहे
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.emp_data = None
+
+emp_code_input = st.text_input("Employee Code (e.g., IS-10245)")
+password_input = st.text_input("Password", type="password")
 
 if st.button("Verify & Access Pay Slip"):
-    if emp_code in EMPLOYEE_DB:
-        if EMPLOYEE_DB[emp_code]["password"] == password:
-            st.success(f"Welcome, {EMPLOYEE_DB[emp_code]['Employee Name']}! Your Pay Slip is ready.")
-            
-            emp_data = EMPLOYEE_DB[emp_code].copy()
-            emp_data["EmployeeCode"] = emp_code
-            
-            # बिना एरर के PDF जनरेट होगी
-            pdf_bytes = generate_pdf(emp_data)
-            
-            st.download_button(
-                label="📥 Download PaySlip PDF",
-                data=pdf_bytes,
-                file_name=f"PaySlip_{emp_code}.pdf",
-                mime="application/pdf"
-            )
+    # केस-इंसेंसिटिव बनाने के लिए .lower() और स्पेस हटाने के लिए .strip() का इस्तेमाल
+    clean_code = emp_code_input.strip().lower()
+    
+    if clean_code in EMPLOYEE_DB:
+        if EMPLOYEE_DB[clean_code]["password"] == password_input:
+            st.session_state.logged_in = True
+            # डेटा को सेशन स्टेट में सुरक्षित रख लिया
+            st.session_state.emp_data = EMPLOYEE_DB[clean_code].copy()
+            st.session_state.emp_data["EmployeeCode"] = emp_code_input.strip()
+            st.rerun() # स्क्रीन को तुरंत अपडेट करने के लिए
         else:
             st.error("Incorrect Password. Please try again.")
+            st.session_state.logged_in = False
     else:
         st.error("Employee Code not found. Please check the code and try again.")
+        st.session_state.logged_in = False
+
+# यदि लॉगिन सक्सेसफुल है, तो डाउनलोड बटन हमेशा स्क्रीन पर टिका रहेगा
+if st.session_state.logged_in and st.session_state.emp_data:
+    st.success(f"Welcome, {st.session_state.emp_data['Employee Name']}! Your Pay Slip is verified.")
+    
+    # चुपचाप बैकएंड में पीडीएफ बनाएं
+    pdf_bytes = generate_pdf(st.session_state.emp_data)
+    
+    st.download_button(
+        label="📥 Download PaySlip PDF",
+        data=pdf_bytes,
+        file_name=f"PaySlip_{st.session_state.emp_data['EmployeeCode']}.pdf",
+        mime="application/pdf"
+    )
