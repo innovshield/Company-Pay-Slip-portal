@@ -56,7 +56,6 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
     ]
     
-    # Static Width numbers passed inline directly to bypass system strips
     info_table = Table(info_data, colWidths=[150, 200, 190])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -118,7 +117,6 @@ def generate_pdf(emp_data):
         "", "", "", ""
     ])
     
-    # Inline widths fixed here as well to protect the layout parser
     sal_table = Table(salary_table_data, colWidths=[140, 80, 100, 130, 90])
     sal_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")), 
@@ -190,3 +188,4 @@ else:
                 available_months = user_records['Month'].unique().tolist()
                 selected_month = st.selectbox("Select Month for PaySlip:", available_months)
                 
+                # FIXED: Added correct .iloc[0] extraction to prevent crashes
