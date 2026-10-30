@@ -29,7 +29,7 @@ def generate_pdf(emp_data):
     story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
     story.append(Spacer(1, 5))
     
-    # Employee Master Profile Information Block
+    # Employee Master Profile Information Block (Fixed colWidths)
     info_data = [
         [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', '')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', '')}", normal_style)],
         [Paragraph(f"<b>Location:</b> {emp_data.get('Location', '')}", normal_style), Paragraph(f"<b>A/c No:</b> {emp_data.get('Ac No', '')}", normal_style), Paragraph(f"<b>UAN No:</b> {emp_data.get('UAN NO', '')}", normal_style)],
@@ -142,17 +142,14 @@ if os.path.exists(excel_file):
 
         if submit_button:
             if emp_code_input and password_input:
-                # Query index match matching rows
                 result = df[(df['EmployeeCode'] == emp_code_input) & (df['Password'] == password_input)]
                 
                 if not result.empty:
                     emp_data = result.iloc[0].to_dict()
                     st.success(f"Welcome {emp_data.get('Employee Name')}!")
                     
-                    # Compute report binary stream array
                     pdf_data = generate_pdf(emp_data)
                     
-                    # Submit forms stream file download down to operational sandbox browser
                     st.download_button(
                         label="📥 Download Salary Slip (PDF Format)",
                         data=pdf_data,
@@ -178,6 +175,9 @@ if os.path.exists(excel_file):
                     idx = df[(df['EmployeeCode'] == chg_emp_code) & (df['Password'] == old_password)].index
                     if not idx.empty:
                         df.loc[idx, 'Password'] = new_password
-                        df.to_excel(excel_file, index=False) # Commit runtime updates down into sheet matrix
+                        df.to_excel(excel_file, index=False)
                         st.success("Password changed successfully in your database!")
                     else:
+                        st.error("Verification failed. Current credentials record not matched.")
+else:
+    st.error(f"❌ Master Database Error: '{excel_file}' file repository system settings ke andar missing hai. Please verify your files structure.")
