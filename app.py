@@ -125,7 +125,7 @@ def get_html_payslip(emp_data):
     """
     return html_content
 
-# 3. DIRECT DATA LOADING
+# 3. SAFE DIRECT DATA LOADING
 csv_file = "salary_data.csv"
 
 if not os.path.exists(csv_file):
@@ -140,7 +140,8 @@ else:
 
     tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
 
-    # TAB 1: LOGIN & VIEW (Form block removed for direct rendering)
+    # TAB 1: LOGIN & VIEW (Forced parallel row inputs layout)
     with tab1:
         st.subheader("Apna Account Login Karein")
-        emp_code_input = st.text_input("Enter Employee Code:", key="emp_code_field").strip()
+        
+        # Grid columns banayein taaki fields ek sath force hokar screen par aayein
