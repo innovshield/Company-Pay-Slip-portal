@@ -142,24 +142,6 @@ def get_html_payslip(emp):
                 <td colspan="3" style="padding: 10px; border: 1px solid #CBD5E0;">NET PAYABLE TAKE-HOME SALARY</td>
                 <td colspan="2" style="padding: 10px; border: 1px solid #CBD5E0; text-align: center;">₹{int(float(emp.get('Net Pay', 0)))}</td>
             </tr>
-# Dynamic Filtering Logic to exclude zeros safely
-    for comp, f_key, e_key, ded, d_key in all_components:
-        f_val = float(emp_data.get(f_key, 0)) if f_key and emp_data.get(f_key) else 0.0
-        e_val = float(emp_data.get(e_key, 0)) if e_key and emp_data.get(e_key) else 0.0
-        d_val = float(emp_data.get(d_key, 0)) if d_key and emp_data.get(d_key) else 0.0
-        
-        if f_val == 0.0 and e_val == 0.0 and d_val == 0.0 and not ded:
-            continue
-            
-        f_text = str(int(f_val)) if f_key and f_val > 0 else "-"
-        e_text = str(int(e_val)) if e_val > 0 else "-"
-        d_text = str(int(d_val)) if d_key and d_val > 0 else "-"
-        ded_text = ded if ded and (d_val > 0 or comp in ["Basic Salary", "HRA"]) else ""
-        
-        comp_text = comp if (f_val > 0 or e_val > 0 or comp in ["Basic Salary", "HRA"]) else ""
-        if comp_text == "" and ded_text == "":
-            continue
-
         </table>
         <p style="font-size: 11px; font-style: italic; margin-top: 15px; color: #718096;">Note: This is a system-generated secure slip and does not require a physical stamp or signature.</p>
     </div>
