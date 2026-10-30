@@ -6,21 +6,20 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 import io
 
-# 1. पेज कॉन्फ़िगरेशन (सबसे ऊपर होना चाहिए)
+# 1. पेज कॉन्फ़िगरेशन (सबसे ऊपर होना अनिवार्य है)
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
 
-# 🔒 CSS कोड: तीन डॉट्स (MainMenu), फुटर (Footer) और हेडर को पूरी तरह छुपाने के लिए
+# 🔒 CSS कोड: तीन डॉट्स (MainMenu) और फुटर (Footer) को छुपाने के लिए
 hide_streamlit_style = """
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
             header {visibility: hidden;}
-            stDecoration {display: none;}
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# नकली डेटाबेस (Secure Database Setup)
+# 🔑 सुरक्षित एम्प्लोयी डेटाबेस (Testing के लिए इसे हुबहू इनपुट करें)
 EMPLOYEE_DB = {
     "IS-10245": {
         "password": "password123",
@@ -70,7 +69,7 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>Bank Account:</b> {emp_data.get('BankAccount', 'N/A')}", normal_style), Paragraph(f"<b>PAN / UAN:</b> {emp_data.get('PAN_UAN', 'N/A')}", normal_style)]
     ]
     
-    # 540 pt total printable width on letter page with 30 pt margins (612 - 60)
+    # फिक्स कॉलम विड्थ (540 टोटल विड्थ)
     info_table = Table(info_data, colWidths=[270, 270])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -103,7 +102,8 @@ def generate_pdf(emp_data):
         [Paragraph("<b>Total Earnings</b>", bold_style), Paragraph(f"<b>{total_earnings:,.2f}</b>", bold_style), Paragraph("<b>Total Deductions</b>", bold_style), Paragraph(f"<b>{total_deductions:,.2f}</b>", bold_style)]
     ]
     
-    financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[170, 100, 170, 100])
+    # फिक्स कॉलम विड्थ ब्रेकडाउन तालिकाओं के लिए
+    financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[160, 110, 160, 110])
     financial_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -134,7 +134,7 @@ def generate_pdf(emp_data):
 st.title("🔒 Secure Corporate PaySlip Portal")
 st.write("Please enter your credentials to download your Pay Slip.")
 
-emp_code = st.text_input("Employee Code (e.g., IS-10245)")
+emp_code = st.text_input("Employee Code (e.g., IS-10245)").strip()
 password = st.text_input("Password", type="password")
 
 if st.button("Verify & Access Pay Slip"):
@@ -142,9 +142,10 @@ if st.button("Verify & Access Pay Slip"):
         if EMPLOYEE_DB[emp_code]["password"] == password:
             st.success(f"Welcome, {EMPLOYEE_DB[emp_code]['Employee Name']}! Your Pay Slip is ready.")
             
-            emp_data = EMPLOYEE_DB[emp_code]
+            emp_data = EMPLOYEE_DB[emp_code].copy()
             emp_data["EmployeeCode"] = emp_code
             
+            # बिना एरर के PDF जनरेट होगी
             pdf_bytes = generate_pdf(emp_data)
             
             st.download_button(
@@ -156,4 +157,4 @@ if st.button("Verify & Access Pay Slip"):
         else:
             st.error("Incorrect Password. Please try again.")
     else:
-        st.error("Employee Code not found.")
+        st.error("Employee Code not found. Please check the code and try again.")
