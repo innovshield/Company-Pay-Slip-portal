@@ -26,7 +26,7 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 📄 SAFE HTML-BASED PDF DOWNLOADER (completely removes ReportLab script crashes)
+# 📄 SAFE HTML-BASED PAYSLIP GENERATION (Removes ReportLab crashes completely)
 def convert_to_html_slip(emp):
     html_content = f"""
     <html>
@@ -155,21 +155,21 @@ else:
                 target_df = user_records[user_records['Month'] == selected_month]
                 
                 if not target_df.empty:
-                    # Clean and secure conversion directly using first index row values
-                    raw_dict = target_df.to_dict(orient='records')
-                    emp_data = raw_dict[0]
+                    # Pure single row processing flat extraction index 0 safe lookup
+                    emp_data_list = target_df.to_dict(orient='records')
+                    emp_data = emp_data_list[0]
                     
                     st.subheader(f"👋 Welcome, {emp_data.get('Employee Name', 'Employee')}")
                     st.write(f"**Designation:** {emp_data.get('Designation', 'N/A')} | **Selected Month:** {selected_month}")
                     
                     st.markdown("---")
                     
-                    # Generate safe HTML content string
+                    # Generate safe html data slip format
                     slip_html = convert_to_html_slip(emp_data)
                     
                     # 📥 BIG BLUE SECURE STREAMLIT DOWNLOAD BUTTON
                     st.download_button(
-                        label=f"📥 Click Here to Download PaySlip ({selected_month}) - PDF Format",
+                        label=f"📥 Click Here to Download PaySlip ({selected_month}) - HTML PDF Format",
                         data=slip_html,
                         file_name=f"PaySlip_{current_emp}_{selected_month}.html",
                         mime="text/html",
