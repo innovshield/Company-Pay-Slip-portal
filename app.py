@@ -57,7 +57,7 @@ def generate_pdf(emp_data):
     story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
     story.append(Spacer(1, 5))
     
-    # Employee Master Profile Information Block (Fixed Widths: 270pt + 270pt = 540pt total printable width)
+    # Employee Master Profile Information Block
     info_data = [
         [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', '')}", normal_style)],
         [Paragraph(f"<b>Department:</b> {emp_data.get('Department', '')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', '')}", normal_style)],
@@ -74,7 +74,7 @@ def generate_pdf(emp_data):
     story.append(info_table)
     story.append(Spacer(1, 15))
     
-    # Financial breakdown matrices (4 columns: 160pt, 110pt, 160pt, 110pt)
+    # Financial breakdown matrices
     breakdown_headers = [
         [Paragraph("Earnings Breakdown", header_text_style), Paragraph("Amount (INR)", header_text_style),
          Paragraph("Deductions Breakdown", header_text_style), Paragraph("Amount (INR)", header_text_style)]
@@ -107,7 +107,7 @@ def generate_pdf(emp_data):
     net_pay_data = [
         [Paragraph(f"<b>NET TAKE-HOME PAY:</b>", bold_style), Paragraph(f"<b>INR {net_pay:,.2f}</b>", ParagraphStyle('NetPay', parent=bold_style, fontSize=10, textColor=colors.HexColor("#2F855A")))]
     ]
-    net_pay_table = Table(net_pay_data, colWidths=[160, 380])
+    net_pay_table = Table(net_pay_data, colWidths=[150, 390])
     net_pay_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#E6FFFA")),
         ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#319795")),
@@ -120,23 +120,23 @@ def generate_pdf(emp_data):
     buffer.seek(0)
     return buffer
 
-# 3. 🛡️ SIGN IN INTERFACE VIEW (Locked State)
+# 3. 🛡️ SIGN IN INTERFACE VIEW (Dynamic State Validation)
 if not st.session_state.logged_in:
     st.title("🔒 Secure Corporate PaySlip Portal")
     st.subheader("Employee Login Panel")
     
-    with st.form("secure_login"):
-        user_input = st.text_input("Employee Code (e.g. IS-10245)").strip()
-        pass_input = st.text_input("Secure Password", type="password")
-        login_btn = st.form_submit_button("Sign In")
-        
-        if login_btn:
-            if user_input in st.session_state.user_db and st.session_state.user_db[user_input]["password"] == pass_input:
-                st.session_state.logged_in = True
-                st.session_state.current_user = user_input
-                st.rerun()
-            else:
-                st.error("Authentication failed. Check your Code or Password.")
+    user_input = st.text_input("Employee Code", value="", placeholder="e.g. IS-10245").strip()
+    pass_input = st.text_input("Secure Password", value="", placeholder="••••••••", type="password")
+    login_btn = st.button("Sign In Securely")
+    
+    if login_btn:
+        if user_input in st.session_state.user_db and st.session_state.user_db[user_input]["password"] == pass_input:
+            st.session_state.logged_in = True
+            st.session_state.current_user = user_input
+            st.success("Access Granted! Loading session...")
+            st.rerun()
+        else:
+            st.error("Authentication failed. Check your Code or Password.")
 
 else:
     # Authenticated State User References
@@ -160,7 +160,7 @@ else:
     if app_mode == "Download PaySlip":
         st.subheader("📋 Your Verified Payroll Ledger")
         
-        # CURRENT YEAR 2026
+        # YEAR IS 2026
         month_choice = st.selectbox("Select Target Roster Month", ["October 2026", "November 2026", "December 2026"])
         
         # Calculate totals dynamically based on profile variables securely
@@ -190,6 +190,8 @@ else:
     elif app_mode == "Account Security Settings":
         st.subheader("🔑 Change System Access Password")
         
-        with st.form("password_mutation"):
-            old_p = st.text_input("Current System Password", type="password")
-            new_p = st.text_input("New Identity Password", type="password")
+        old_p = st.text_input("Current System Password", type="password")
+        new_p = st.text_input("New Identity Password", type="password")
+        confirm_p = st.text_input("Confirm New Password", type="password")
+        update_btn = st.button("Update Credentials")
+        
