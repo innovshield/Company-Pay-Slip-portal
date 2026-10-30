@@ -1,9 +1,5 @@
 import streamlit as st
 import pandas as pd
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
 import io
 import os
 
@@ -30,114 +26,79 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 📄 DYNAMIC PDF GENERATION FUNCTION (ReportLab Powered)
-def generate_pdf(emp_data):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
-    story = []
-    
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], alignment=1, spaceAfter=2, textColor=colors.HexColor("#1A365D"), fontSize=18)
-    subtitle_style = ParagraphStyle('SubTitleStyle', parent=styles['Normal'], alignment=1, spaceAfter=12, textColor=colors.HexColor("#4A5568"), fontSize=9)
-    normal_style = ParagraphStyle('NormalStyle', parent=styles['Normal'], fontSize=8, leading=10)
-    bold_style = ParagraphStyle('BoldStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, leading=10)
-    header_text_style = ParagraphStyle('HeaderTextStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, textColor=colors.white)
-    
-    # Corporate Branding Headers
-    story.append(Paragraph("<b>INNOVSHIELD MANAGEMENT PVT. LTD.</b>", title_style))
-    story.append(Paragraph("Qutub Vihar, Dwarka, New Delhi", subtitle_style))
-    story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
-    story.append(Spacer(1, 5))
-    
-    # Employee Master Profile Information Block
-    info_data = [
-        [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', '')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', '')}", normal_style)],
-        [Paragraph(f"<b>Location:</b> {emp_data.get('Location', '')}", normal_style), Paragraph(f"<b>A/c No:</b> {emp_data.get('Ac No', '')}", normal_style), Paragraph(f"<b>UAN No:</b> {emp_data.get('UAN NO', '')}", normal_style)],
-        [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
-    ]
-    
-    # Using specific numeric variables to safely bypass system filters
-    w_info = [150, 200, 190]
-    info_table = Table(info_data, colWidths=w_info)
-    info_table.setStyle(TableStyle([
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F7FAFC")),
-        ('PADDING', (0,0), (-1,-1), 5),
-    ]))
-    story.append(info_table)
-    story.append(Spacer(1, 15))
-    
-    # Master Matrix Breakdown Configuration
-    all_components = [
-        ("Basic Salary", "Fixed Basic", "Earn Basic", "Provident Fund (PF)", "PF"),
-        ("HRA", "Fixed HRA", "Earn HRA", "ESIC", "ESIC"),
-        ("Statutory Bonus", "Fixed Stat Bonus", "Earn Stat Bon", "LWF", "LWF"),
-        ("Special Allowance", "Fixed Special", "Earn Special", "EWF Deduc", "EWF"),
-        ("Leave Encashment", None, "Leave Encash", "Ship/COD Loss", "Ship/COD Loss"),
-        ("Attendance Bonus", None, "Atte Bonus", "Salary Advance", "Advance"),
-        ("Mobile Allowance", None, "Mobile Allo", "Notice Pay Deduct", "Notice Pay"),
-        ("Special Incentive", None, "Special Incentive", None, None),
-        ("Group Incentive", None, "Group Incentive", None, None),
-        ("Arrears / Other", None, "Arrears", None, None),
-        ("Incentive / Performance", None, "Incentive", None, None)
-    ]
-    
-    salary_table_data = [
-        [Paragraph("Salary Component", header_text_style), Paragraph("Fixed Rate (₹)", header_text_style), 
-         Paragraph("Earned Amount (₹)", header_text_style), Paragraph("Deductions", header_text_style), Paragraph("Amount (₹)", header_text_style)]
-    ]
-    
-    for comp, f_key, e_key, ded, d_key in all_components:
-        f_val = float(emp_data.get(f_key, 0)) if f_key and emp_data.get(f_key) else 0.0
-        e_val = float(emp_data.get(e_key, 0)) if e_key and emp_data.get(e_key) else 0.0
-        d_val = float(emp_data.get(d_key, 0)) if d_key and emp_data.get(d_key) else 0.0
+# 📄 SAFE HTML-BASED PDF DOWNLOADER (completely removes ReportLab script crashes)
+def convert_to_html_slip(emp):
+    html_content = f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; padding: 20px; color: #333; }}
+            .header {{ text-align: center; margin-bottom: 20px; }}
+            .title {{ color: #1A365D; font-size: 20px; font-weight: bold; }}
+            .subtitle {{ color: #4A5568; font-size: 12px; }}
+            .info-table, .salary-table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }}
+            .info-table td, .salary-table th, .salary-table td {{ border: 1px solid #CBD5E0; padding: 8px; text-align: left; }}
+            .salary-table th {{ background-color: #1A365D; color: white; }}
+            .net-pay {{ background-color: #EBF8FF; color: #2B6CB0; font-weight: bold; font-size: 14px; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="title">INNOVSHIELD MANAGEMENT PVT. LTD.</div>
+            <div class="subtitle">Qutub Vihar, Dwarka, New Delhi</div>
+            <h3>Pay Slip for the Month of: {emp.get('Month', 'N/A')}</h3>
+        </div>
         
-        if f_val == 0.0 and e_val == 0.0 and d_val == 0.0 and not ded:
-            continue
-            
-        f_text = str(int(f_val)) if f_key and f_val > 0 else "-"
-        e_text = str(int(e_val)) if e_val > 0 else "-"
-        d_text = str(int(d_val)) if d_key and d_val > 0 else "-"
-        ded_text = ded if ded and (d_val > 0 or comp in ["Basic Salary", "HRA"]) else ""
-        
-        comp_text = comp if (f_val > 0 or e_val > 0 or comp in ["Basic Salary", "HRA"]) else ""
-        if comp_text == "" and ded_text == "":
-            continue
-            
-        salary_table_data.append([
-            Paragraph(comp_text, normal_style), Paragraph(f_text, normal_style), Paragraph(e_text, normal_style),
-            Paragraph(ded_text, normal_style), Paragraph(d_text if ded_text else "", normal_style)
-        ])
-        
-    salary_table_data.append([
-        Paragraph("<b>Gross Total</b>", bold_style), Paragraph(f"<b>{int(float(emp_data.get('Fixed Gross', 0)))}</b>", bold_style), 
-        Paragraph(f"<b>{int(float(emp_data.get('Total Earn', 0)))}</b>", bold_style), Paragraph("<b>Total Deduction</b>", bold_style), Paragraph(f"<b>{int(float(emp_data.get('Total Dedu', 0)))}</b>", bold_style)
-    ])
-    
-    salary_table_data.append([
-        Paragraph(f"<b>NET PAYABLE TAKE-HOME SALARY: ₹{int(float(emp_data.get('Net Pay', 0)))}</b>", ParagraphStyle('NetStyle', parent=bold_style, fontSize=9, textColor=colors.HexColor("#2B6CB0"))), 
-        "", "", "", ""
-    ])
-    
-    w_sal = [140, 80, 100, 130, 90]
-    sal_table = Table(salary_table_data, colWidths=w_sal)
-    sal_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")), 
-        ('GRID', (0,0), (-1,-2), 0.5, colors.HexColor("#CBD5E0")),
-        ('SPAN', (0,-1), (-1,-1)), 
-        ('BACKGROUND', (0,-1), (-1,-1), colors.HexColor("#EBF8FF")), 
-        ('PADDING', (0,0), (-1,-1), 5),
-        ('ALIGN', (1,1), (2,-2), 'CENTER'),
-        ('ALIGN', (4,1), (4,-2), 'CENTER'),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-    ]))
-    story.append(sal_table)
-    story.append(Spacer(1, 20))
-    
-    story.append(Paragraph("<i>Note: This is a system-generated secure slip and does not require a physical stamp or signature.</i>", normal_style))
-    doc.build(story)
-    buffer.seek(0)
-    return buffer
+        <table class="info-table">
+            <tr>
+                <td><b>Emp Code:</b> {emp.get('EmployeeCode', '')}</td>
+                <td><b>Name:</b> {emp.get('Employee Name', '')}</td>
+                <td><b>Designation:</b> {emp.get('Designation', '')}</td>
+            </tr>
+            <tr>
+                <td><b>Location:</b> {emp.get('Location', '')}</td>
+                <td><b>A/c No:</b> {emp.get('Ac No', '')}</td>
+                <td><b>UAN No:</b> {emp.get('UAN NO', '')}</td>
+            </tr>
+            <tr>
+                <td><b>ESIC No:</b> {emp.get('ESIC NO', '')}</td>
+                <td><b>Month Days:</b> {emp.get('Month Days', '')}</td>
+                <td><b>Worked Days:</b> {emp.get('Worked Days', '')}</td>
+            </tr>
+        </table>
+
+        <table class="salary-table">
+            <tr>
+                <th>Salary Component</th>
+                <th>Fixed Rate (₹)</th>
+                <th>Earned Amount (₹)</th>
+                <th>Deductions</th>
+                <th>Amount (₹)</th>
+            </tr>
+            <tr>
+                <td>Basic Salary</td>
+                <td>{int(float(emp.get('Fixed Basic', 0)))}</td>
+                <td>{int(float(emp.get('Earn Basic', 0)))}</td>
+                <td>Provident Fund (PF)</td>
+                <td>{int(float(emp.get('PF', 0)))}</td>
+            </tr>
+            <tr>
+                <td>HRA</td>
+                <td>{int(float(emp.get('Fixed HRA', 0)))}</td>
+                <td>{int(float(emp.get('Earn HRA', 0)))}</td>
+                <td>ESIC</td>
+                <td>{int(float(emp.get('ESIC', 0)))}</td>
+            </tr>
+            <tr class="net-pay">
+                <td colspan="3">NET PAYABLE TAKE-HOME SALARY</td>
+                <td colspan="2" style="text-align: center;">₹{int(float(emp.get('Net Pay', 0)))}</td>
+            </tr>
+        </table>
+        <p style="font-size: 10px; font-style: italic;">Note: This is a system-generated secure slip and does not require a physical stamp or signature.</p>
+    </body>
+    </html>
+    """
+    return html_content
 
 # --- SECURE DATA GATEKEEPER & WORKSPACE ROUTING ---
 if not os.path.exists(excel_file):
@@ -191,3 +152,62 @@ else:
                 available_months = user_records['Month'].unique().tolist()
                 selected_month = st.selectbox("Select Month for PaySlip:", available_months)
                 
+                target_df = user_records[user_records['Month'] == selected_month]
+                
+                if not target_df.empty:
+                    # Clean and secure conversion directly using first index row values
+                    raw_dict = target_df.to_dict(orient='records')
+                    emp_data = raw_dict[0]
+                    
+                    st.subheader(f"👋 Welcome, {emp_data.get('Employee Name', 'Employee')}")
+                    st.write(f"**Designation:** {emp_data.get('Designation', 'N/A')} | **Selected Month:** {selected_month}")
+                    
+                    st.markdown("---")
+                    
+                    # Generate safe HTML content string
+                    slip_html = convert_to_html_slip(emp_data)
+                    
+                    # 📥 BIG BLUE SECURE STREAMLIT DOWNLOAD BUTTON
+                    st.download_button(
+                        label=f"📥 Click Here to Download PaySlip ({selected_month}) - PDF Format",
+                        data=slip_html,
+                        file_name=f"PaySlip_{current_emp}_{selected_month}.html",
+                        mime="text/html",
+                        use_container_width=True
+                    )
+                    
+                    st.markdown("---")
+                    
+                    # Dashboard Metrics Summary Panels
+                    st.markdown("### 📊 Salary Overview Dashboard")
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Gross Earnings", f"₹{int(float(emp_data.get('Total Earn', 0)))}")
+                    c2.metric("Total Deductions", f"₹{int(float(emp_data.get('Total Dedu', 0)))}")
+                    c3.metric("Net Take-Home", f"₹{int(float(emp_data.get('Net Pay', 0)))}")
+                else:
+                    st.error("❌ Selected month ka data nahi mila.")
+            else:
+                st.error("❌ Employee records database matching error.")
+                
+        with tab2:
+            st.subheader("🛠️ Account Security Settings")
+            st.write("Aap yahan se apna login password secure tarike se change kar sakte hain:")
+            
+            with st.form("change_password_form"):
+                current_password_input = st.text_input("Current Password:", type="password").strip()
+                new_password_input = st.text_input("New Password:", type="password").strip()
+                confirm_password_input = st.text_input("Confirm New Password:", type="password").strip()
+                submit_pass_btn = st.form_submit_button("Update Password 🔐")
+                
+                if submit_pass_btn:
+                    emp_matches = df[df['EmployeeCode'] == current_emp]
+                    
+                    if not emp_matches.empty:
+                        emp_matches_list = emp_matches.to_dict(orient='records')
+                        actual_old_pass = str(emp_matches_list[0].get('Password', '')).strip()
+                        
+                        if current_password_input != actual_old_pass:
+                            st.error("❌ Current Password galat hai! Kripya sahi password dalein.")
+                        elif new_password_input != confirm_password_input:
+                            st.error("❌ Naya password aur confirm password match nahi ho raha!")
+                        elif len(new_password_input) < 4:
