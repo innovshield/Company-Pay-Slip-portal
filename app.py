@@ -182,10 +182,12 @@ else:
             st.session_state['is_authenticated'] = False
             st.session_state['logged_in_user'] = None
             st.rerun()
-
+            
         tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
         current_emp = st.session_state['logged_in_user']
-
+        
         # TAB 1: WORKSPACE & PDF DOWNLOAD
         with tab1:
             user_row = df[df['EmployeeCode'] == current_emp]
+            
+            if not user_row.empty:
