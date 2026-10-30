@@ -145,6 +145,7 @@ else:
     df = pd.read_excel(excel_file)
     df.fillna(0, inplace=True)
     
+    # Clean up key text identifiers
     for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
@@ -188,6 +189,5 @@ else:
         
         # TAB 1: WORKSPACE & PDF DOWNLOAD
         with tab1:
-            # Query the user row as a DataFrame
             user_df = df[df['EmployeeCode'] == current_emp]
             
