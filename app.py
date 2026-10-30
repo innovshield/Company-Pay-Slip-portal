@@ -15,7 +15,7 @@ def safe_num(val):
     except:
         return 0
 
-# HTML PAYSLIP RENDERER
+# HTML PAYSLIP RENDERER FOR SCREEN & DOWNLOAD
 def get_html_payslip(emp_data):
     fixed_gross = safe_num(emp_data.get('Fixed Gross', 0))
     total_earn = safe_num(emp_data.get('Total Earn', 0))
@@ -126,13 +126,18 @@ def get_html_payslip(emp_data):
     """
     return html_content
 
-# MAIN SCREEN DESIGN (Yeh har halat mein sabse pehle load hoga)
-st.title("🔒 Secure Corporate PaySlip Portal")
+# 3. ABSOLUTE FIXED CORE DATA INTERACTION
+csv_file = "salary_data.csv"
 
-tab1, tab2 = st.tabs(["🔑 Employee Login", "🔄 Reset Password"])
+if not os.path.exists(csv_file):
+    st.error("🛑 Galti: Folder mein 'salary_data.csv' file nahi mili!")
+else:
+    df = pd.read_csv(csv_file)
+    df.fillna(0, inplace=True)
+    for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip()
 
-with tab1:
-    with st.form(key="secure_login_form_final"):
-        st.subheader("👤 Employee Sign In")
-        emp_code_input = st.text_input("Employee Code (Emp Code):", placeholder="e.g., EMP001").strip()
-        password_input = st.text_input("Password:", type="password", placeholder="******").strip()
+    st.title("🔒 Secure Corporate PaySlip Portal")
+    
+    # Dono proper Tabs banayein
