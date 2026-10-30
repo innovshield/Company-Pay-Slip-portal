@@ -127,7 +127,7 @@ def get_html_payslip(emp_data):
 # 3. DIRECT DATA LINK USING STREAMLIT FILE UPLOADER
 tab1, tab2, tab3 = st.tabs(["🔑 Employee Login", "🔄 Change Password", "⚙️ Admin Upload"])
 
-# TAB 3: ADMIN UPLOAD PANEL (Yahaan bina kisi library ke direct website par excel upload hogi)
+# TAB 3: ADMIN UPLOAD PANEL
 with tab3:
     st.subheader("Upload Salary Sheet (Admin Only)")
     uploaded_file = st.file_uploader("Apni salary_data.xlsx file select karein", type=["xlsx"])
