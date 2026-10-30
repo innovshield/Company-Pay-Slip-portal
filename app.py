@@ -114,21 +114,18 @@ def get_html_payslip(emp):
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Group Incentive</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Group Incentive', 0)))}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">None</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
             </tr>
 	    <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Arrears / Other</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Arrears', 0)))}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">None</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
             </tr>
 	    <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Incentive / Performance</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Incentive', 0)))}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">None</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
             </tr>
             <tr style="background-color: #F7FAFC; font-weight: bold;">
