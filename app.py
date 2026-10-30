@@ -4,6 +4,7 @@ import os
 
 # 1. PAGE CONFIGURATION
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
+st.title("🔒 Secure Corporate PaySlip Portal")
 
 # SAFE NUMBER CONVERTER
 def safe_num(val):
@@ -124,11 +125,11 @@ def get_html_payslip(emp_data):
     """
     return html_content
 
-# 3. ABSOLUTE FIXED CORE DATA INTERACTION (Forms integrated perfectly)
+# 3. DIRECT RAW RENDERING (Bina kisi tab, form ya container ke)
 csv_file = "salary_data.csv"
 
 if not os.path.exists(csv_file):
-    st.error("🛑 Galti: GitHub folder mein 'salary_data.csv' file nahi mili!")
+    st.error("🛑 Galti: Folder mein 'salary_data.csv' file nahi mili!")
 else:
     df = pd.read_csv(csv_file)
     df.fillna(0, inplace=True)
@@ -136,9 +137,7 @@ else:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
-    st.title("🔒 Secure Corporate PaySlip Portal")
-    
-    # 🌟 CORE COMPACT FORM LAYOUT (Standard Form Engine)
-    with st.form(key="secure_login_form"):
-        st.subheader("👤 Employee Sign In")
-        emp_code_input = st.text_input("Employee Code (Emp Code):", placeholder="e.g., EMP001").strip()
+    # --- LINE BY LINE LOGIN INPUTS (FORCE RENDERING) ---
+    st.markdown("### 👤 Employee Login")
+    emp_code_input = st.text_input("1. Enter Employee Code:")
+    password_input = st.text_input("2. Enter Password:", type="password")
