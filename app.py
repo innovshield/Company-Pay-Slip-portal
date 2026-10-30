@@ -138,10 +138,11 @@ else:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
-    tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
+    # 🌟 NAVIGATION VIA SIDEBAR DROP-DOWN (Tabs glitch bypass)
+    st.sidebar.title("📌 Menu Options")
+    menu = st.sidebar.selectbox("Choose Action:", ["🔑 Employee Login", "🔄 Change Password"])
 
-    # TAB 1: LOGIN & VIEW (Forced parallel row inputs layout)
-    with tab1:
+    # OPTION 1: EMPLOYEE LOGIN
+    if menu == "🔑 Employee Login":
         st.subheader("Apna Account Login Karein")
         
-        # Grid columns banayein taaki fields ek sath force hokar screen par aayein
