@@ -49,15 +49,16 @@ def generate_pdf(emp_data):
     story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
     story.append(Spacer(1, 5))
     
-    # Employee Master Profile Information Block
+    # Employee Master Profile Information Block (FIXED WIDTHS SECURED)
     info_data = [
         [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', '')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', '')}", normal_style)],
         [Paragraph(f"<b>Location:</b> {emp_data.get('Location', '')}", normal_style), Paragraph(f"<b>A/c No:</b> {emp_data.get('Ac No', '')}", normal_style), Paragraph(f"<b>UAN No:</b> {emp_data.get('UAN NO', '')}", normal_style)],
         [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
     ]
     
-    # Auto-adjust layouts safely to bypass system strips
-    info_table = Table(info_data)
+    # Directly defining dimensions inside a safe variable string to prevent strips
+    w_info = [150, 200, 190]
+    info_table = Table(info_data, colWidths=w_info)
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F7FAFC")),
@@ -118,7 +119,8 @@ def generate_pdf(emp_data):
         "", "", "", ""
     ])
     
-    sal_table = Table(salary_table_data)
+    w_sal = [140, 80, 100, 130, 90]
+    sal_table = Table(salary_table_data, colWidths=w_sal)
     sal_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")), 
         ('GRID', (0,0), (-1,-2), 0.5, colors.HexColor("#CBD5E0")),
@@ -188,6 +190,3 @@ else:
             if not user_records.empty:
                 available_months = user_records['Month'].unique().tolist()
                 selected_month = st.selectbox("Select Month for PaySlip:", available_months)
-                
-                target_df = user_records[user_records['Month'] == selected_month]
-                if not target_df.empty:
