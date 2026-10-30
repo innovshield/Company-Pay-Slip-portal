@@ -56,7 +56,8 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
     ]
     
-    info_table = Table(info_data, colWidths=[150, 200, 190])
+    # FIXED: Automatic Width mode enabled to bypass strip filters
+    info_table = Table(info_data)
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F7FAFC")),
@@ -117,7 +118,8 @@ def generate_pdf(emp_data):
         "", "", "", ""
     ])
     
-    sal_table = Table(salary_table_data, colWidths=[140, 80, 100, 130, 90])
+    # FIXED: Table auto-size logic to completely remove numerical dimensions risk
+    sal_table = Table(salary_table_data)
     sal_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")), 
         ('GRID', (0,0), (-1,-2), 0.5, colors.HexColor("#CBD5E0")),
@@ -188,4 +190,3 @@ else:
                 available_months = user_records['Month'].unique().tolist()
                 selected_month = st.selectbox("Select Month for PaySlip:", available_months)
                 
-                # Sahi row select karne ke liye .iloc[0] lagaya hai safely
