@@ -55,7 +55,10 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>Location:</b> {emp_data.get('Location', '')}", normal_style), Paragraph(f"<b>A/c No:</b> {emp_data.get('Ac No', '')}", normal_style), Paragraph(f"<b>UAN No:</b> {emp_data.get('UAN NO', '')}", normal_style)],
         [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
     ]
-    info_table = Table(info_data, colWidths=[150, 200, 190])
+    
+    # Setup fixed numerical width dimensions explicitly
+    widths_profile = [150, 200, 190]
+    info_table = Table(info_data, colWidths=widths_profile)
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F7FAFC")),
@@ -119,7 +122,8 @@ def generate_pdf(emp_data):
         "", "", "", ""
     ])
     
-    sal_table = Table(salary_table_data, colWidths=[140, 80, 100, 130, 90])
+    widths_salary = [140, 80, 100, 130, 90]
+    sal_table = Table(salary_table_data, colWidths=widths_salary)
     sal_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")), 
         ('GRID', (0,0), (-1,-2), 0.5, colors.HexColor("#CBD5E0")),
@@ -188,6 +192,3 @@ else:
         
         # TAB 1: WORKSPACE & PDF DOWNLOAD
         with tab1:
-            user_records = df[df['EmployeeCode'] == current_emp]
-            
-            if not user_records.empty:
