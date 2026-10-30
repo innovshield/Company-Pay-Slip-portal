@@ -30,7 +30,7 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 📄 DYNAMIC PDF GENERATION FUNCTION (ReportLab Powered - Safe Auto-Sizing Layout)
+# 📄 DYNAMIC PDF GENERATION FUNCTION (ReportLab Powered)
 def generate_pdf(emp_data):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
@@ -56,6 +56,7 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
     ]
     
+    # Auto-layout dynamic widths table
     info_table = Table(info_data)
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -188,4 +189,5 @@ else:
                 available_months = user_records['Month'].unique().tolist()
                 selected_month = st.selectbox("Select Month for PaySlip:", available_months)
                 
-                # Pure dict orientation convert logic jisse background silent-crash completely fix ho gaya
+                target_df = user_records[user_records['Month'] == selected_month]
+                if not target_df.empty:
