@@ -10,7 +10,7 @@ import os
 # 1. 🔒 PAGE CONFIG & EXPERT SECURITY LAYOUT LOCK
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
 
-# Hardening UI: Hides Main Menu, Footers, Headers, Deploy buttons, and Source Viewer completely
+# Hardening UI: Completely hides top bar, menu items, deploy buttons, and running icons
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden !important;}
@@ -20,10 +20,11 @@ st.markdown("""
     button[title="View source code"] {display: none !important;}
     div[data-testid="stStatusWidget"] {display: none !important;}
     div[data-testid="stDecoration"] {display: none !important;}
+    [data-testid="stToolbar"] {visibility: hidden !important; display: none !important;}
     </style>
     """, unsafe_allow_html=True)
 
-# 2. 🔑 MOCK DATA & SESSION STATE DATABASE (For Validation & Live Updates)
+# 2. 🔑 SECURE STATE DATABASE
 if "user_db" not in st.session_state:
     st.session_state.user_db = {
         "IS-10245": {
@@ -119,10 +120,10 @@ def generate_pdf(emp_data):
     buffer.seek(0)
     return buffer
 
-# 3. 🛡️ VIEW LOGIC CONSTRAINTS
+# 3. 🛡️ SIGN IN INTERFACE VIEW (Locked State)
 if not st.session_state.logged_in:
     st.title("🔒 Secure Corporate PaySlip Portal")
-    st.subheader("Employee Portal Entry")
+    st.subheader("Employee Login Panel")
     
     with st.form("secure_login"):
         user_input = st.text_input("Employee Code (e.g. IS-10245)").strip()
@@ -158,6 +159,8 @@ else:
     # MAIN APPLICATION LOGIC FLOW
     if app_mode == "Download PaySlip":
         st.subheader("📋 Your Verified Payroll Ledger")
+        
+        # FIXED CURRENT YEAR 2026
         month_choice = st.selectbox("Select Target Roster Month", ["October 2026", "November 2026", "December 2026"])
         
         # Calculate totals dynamically based on profile variables securely
@@ -191,6 +194,3 @@ else:
             old_p = st.text_input("Current System Password", type="password")
             new_p = st.text_input("New Identity Password", type="password")
             confirm_p = st.text_input("Confirm New Password", type="password")
-            update_btn = st.form_submit_button("Update Credentials")
-            
-            if update_btn:
