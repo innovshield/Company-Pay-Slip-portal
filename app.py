@@ -120,13 +120,11 @@ def get_html_payslip(emp_data):
                 <td colspan="2" style="padding: 10px; border: 1px solid #CBD5E0; text-align: center; font-size: 15px;">₹{net_pay}</td>
             </tr>
         </table>
-        
-        <p style="font-size: 10px; color: #718096; text-align: center; margin-top: 15px; font-style: italic;">Note: This is a system-generated secure digital payslip and does not require a physical signature or stamp.</p>
     </div>
     """
     return html_content
 
-# 3. DIRECT DATA LINK
+# 3. ABSOLUTE FIXED CORE DATA INTERACTION (Forms integrated perfectly)
 csv_file = "salary_data.csv"
 
 if not os.path.exists(csv_file):
@@ -134,11 +132,13 @@ if not os.path.exists(csv_file):
 else:
     df = pd.read_csv(csv_file)
     df.fillna(0, inplace=True)
-    
     for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
     st.title("🔒 Secure Corporate PaySlip Portal")
     
-    # 🌟 SOLID COMPACT REGISTERED BLOCK (Form isolation block)
+    # 🌟 CORE COMPACT FORM LAYOUT (Standard Form Engine)
+    with st.form(key="secure_login_form"):
+        st.subheader("👤 Employee Sign In")
+        emp_code_input = st.text_input("Employee Code (Emp Code):", placeholder="e.g., EMP001").strip()
