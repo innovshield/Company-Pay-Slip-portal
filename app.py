@@ -30,7 +30,7 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 📄 DYNAMIC PDF GENERATION FUNCTION (ReportLab Powered - Fixed Dimensions)
+# 📄 DYNAMIC PDF GENERATION FUNCTION (ReportLab Powered)
 def generate_pdf(emp_data):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
@@ -49,7 +49,7 @@ def generate_pdf(emp_data):
     story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
     story.append(Spacer(1, 5))
     
-    # Employee Master Profile Information Block (Fixed Width Columns Setup)
+    # Employee Master Profile Information Block
     info_data = [
         [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', '')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', '')}", normal_style)],
         [Paragraph(f"<b>Location:</b> {emp_data.get('Location', '')}", normal_style), Paragraph(f"<b>A/c No:</b> {emp_data.get('Ac No', '')}", normal_style), Paragraph(f"<b>UAN No:</b> {emp_data.get('UAN NO', '')}", normal_style)],
@@ -64,7 +64,7 @@ def generate_pdf(emp_data):
     story.append(info_table)
     story.append(Spacer(1, 15))
     
-    # Master Matrix Breakdown Configuration for All 11 Components
+    # Master Matrix Breakdown Configuration for All Components
     all_components = [
         ("Basic Salary", "Fixed Basic", "Earn Basic", "Provident Fund (PF)", "PF"),
         ("HRA", "Fixed HRA", "Earn HRA", "ESIC", "ESIC"),
@@ -84,7 +84,7 @@ def generate_pdf(emp_data):
          Paragraph("Earned Amount (₹)", header_text_style), Paragraph("Deductions", header_text_style), Paragraph("Amount (₹)", header_text_style)]
     ]
     
-    # Dynamic Filtering Logic to cleanly output active metrics
+    # Dynamic Filtering Logic to safely output active metrics
     for comp, f_key, e_key, ded, d_key in all_components:
         f_val = float(emp_data.get(f_key, 0)) if f_key and emp_data.get(f_key) else 0.0
         e_val = float(emp_data.get(e_key, 0)) if e_key and emp_data.get(e_key) else 0.0
@@ -188,3 +188,5 @@ else:
         
         # TAB 1: WORKSPACE & PDF DOWNLOAD
         with tab1:
+            user_records = df[df['EmployeeCode'] == current_emp]
+            
