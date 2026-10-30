@@ -4,7 +4,6 @@ import os
 
 # 1. PAGE CONFIGURATION
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
-st.title("🔒 Secure Corporate PaySlip Portal")
 
 # SAFE NUMBER CONVERTER
 def safe_num(val):
@@ -125,7 +124,7 @@ def get_html_payslip(emp_data):
     """
     return html_content
 
-# 3. DIRECT RAW RENDERING (Bina kisi tab, form ya container ke)
+# 3. DIRECT FILE CHECK AND CLEAN FORM
 csv_file = "salary_data.csv"
 
 if not os.path.exists(csv_file):
@@ -137,7 +136,9 @@ else:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
-    # --- LINE BY LINE LOGIN INPUTS (FORCE RENDERING) ---
-    st.markdown("### 👤 Employee Login")
-    emp_code_input = st.text_input("1. Enter Employee Code:")
-    password_input = st.text_input("2. Enter Password:", type="password")
+    st.title("🔒 Secure Corporate PaySlip Portal")
+    st.write("---")
+
+    # 🌟 ZERO-GLITCH TEXT FIELDS (Bina kisi dynamic block ke simple implementation)
+    emp_code_input = st.text_input(label="Employee Code:", key="emp_code_fixed")
+    password_input = st.text_input(label="Password:", type="password", key="password_fixed")
