@@ -49,7 +49,7 @@ def generate_pdf(emp_data):
     story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
     story.append(Spacer(1, 5))
     
-    # Employee Master Profile Information Block (Fixed colWidths)
+    # Employee Master Profile Information Block
     info_data = [
         [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', '')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', '')}", normal_style)],
         [Paragraph(f"<b>Location:</b> {emp_data.get('Location', '')}", normal_style), Paragraph(f"<b>A/c No:</b> {emp_data.get('Ac No', '')}", normal_style), Paragraph(f"<b>UAN No:</b> {emp_data.get('UAN NO', '')}", normal_style)],
@@ -188,6 +188,6 @@ else:
         
         # TAB 1: WORKSPACE & PDF DOWNLOAD
         with tab1:
-            user_row = df[df['EmployeeCode'] == current_emp]
+            # Query the user row as a DataFrame
+            user_df = df[df['EmployeeCode'] == current_emp]
             
-            if not user_row.empty:
