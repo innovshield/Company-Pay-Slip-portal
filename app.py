@@ -89,6 +89,48 @@ def get_html_payslip(emp):
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">EWF Deduc</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('EWF', 0)))}</td>
             </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Leave Encashment</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Leave Encash', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Ship/COD Loss</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Ship/COD Loss', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Attendance Bonus</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Atte Bonus', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Salary Advance</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Advance', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Mobile Allowances</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Mobile Allo', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Notice Pay Deduct</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Notice Pay', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Group Incentive</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Group Incentive', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">None</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Arrears / Other</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Arrears', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">None</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Incentive / Performance</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Incentive', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">None</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+            </tr>
             <tr style="background-color: #F7FAFC; font-weight: bold;">
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Gross Total</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed Gross', 0)))}</td>
