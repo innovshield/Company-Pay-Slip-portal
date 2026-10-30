@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 # 1. PAGE CONFIGURATION
-st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="wide")
+st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
 
 # SAFE NUMBER CONVERTER
 def safe_num(val):
@@ -126,18 +126,13 @@ def get_html_payslip(emp_data):
     """
     return html_content
 
-# 3. ABSOLUTE FIXED CORE DATA INTERACTION
-csv_file = "salary_data.csv"
+# MAIN SCREEN DESIGN (Yeh har halat mein sabse pehle load hoga)
+st.title("🔒 Secure Corporate PaySlip Portal")
 
-if not os.path.exists(csv_file):
-    st.error("🛑 Galti: Folder mein 'salary_data.csv' file nahi mili!")
-else:
-    df = pd.read_csv(csv_file)
-    df.fillna(0, inplace=True)
-    for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.strip()
+tab1, tab2 = st.tabs(["🔑 Employee Login", "🔄 Reset Password"])
 
-    st.title("🔒 Secure Corporate PaySlip Portal")
-    st.markdown("---")
-    
+with tab1:
+    with st.form(key="secure_login_form_final"):
+        st.subheader("👤 Employee Sign In")
+        emp_code_input = st.text_input("Employee Code (Emp Code):", placeholder="e.g., EMP001").strip()
+        password_input = st.text_input("Password:", type="password", placeholder="******").strip()
