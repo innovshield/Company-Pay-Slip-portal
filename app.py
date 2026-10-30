@@ -69,7 +69,6 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>Bank Account:</b> {emp_data.get('BankAccount', 'N/A')}", normal_style), Paragraph(f"<b>PAN / UAN:</b> {emp_data.get('PAN_UAN', 'N/A')}", normal_style)]
     ]
     
-    # बिना किसी ब्रैकेट के सीधे संख्या लिखी है ताकि सिस्टम इसे गायब न कर पाए
     info_table = Table(info_data, colWidths=(270, 270))
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -102,7 +101,6 @@ def generate_pdf(emp_data):
         [Paragraph("<b>Total Earnings</b>", bold_style), Paragraph(f"<b>{total_earnings:,.2f}</b>", bold_style), Paragraph("<b>Total Deductions</b>", bold_style), Paragraph(f"<b>{total_deductions:,.2f}</b>", bold_style)]
     ]
     
-    # चारों कॉलम की चौड़ाई बिना ब्रैकेट के सीधे टुपल (Tuple) में सेट की है
     financial_table = Table(breakdown_headers + breakdown_rows, colWidths=(160, 110, 160, 110))
     financial_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")),
@@ -116,7 +114,6 @@ def generate_pdf(emp_data):
     story.append(Spacer(1, 15))
     
     net_pay_data = [[Paragraph(f"<b>NET TAKE-HOME PAY:</b> ₹ {net_pay:,.2f}", bold_style)]]
-    
     net_pay_table = Table(net_pay_data, colWidths=(540,))
     net_pay_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#C6F6D5")), 
@@ -133,34 +130,36 @@ def generate_pdf(emp_data):
 
 # 🔒 SECURE LOGIN & DOWNLOAD PORTAL INTERFACE
 st.title("🔒 Secure Corporate PaySlip Portal")
-st.write("Please enter your credentials to download your Pay Slip.")
 
-# Session State सेटअप
+# Session State वेरिएबल जो स्टेट को होल्ड करके रखेंगे
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "emp_data" not in st.session_state:
     st.session_state.emp_data = None
 
-emp_code_input = st.text_input("Employee Code (e.g., IS-10245)")
-password_input = st.text_input("Password", type="password")
+# अगर लॉगिन नहीं है, तो लॉगिन स्क्रीन दिखाएं
+if not st.session_state.logged_in:
+    st.write("Please enter your credentials to download your Pay Slip.")
+    emp_code_input = st.text_input("Employee Code (e.g., IS-10245)")
+    password_input = st.text_input("Password", type="password")
 
-if st.button("Verify & Access Pay Slip"):
-    clean_code = emp_code_input.strip().lower()
-    
-    if clean_code in EMPLOYEE_DB:
-        if EMPLOYEE_DB[clean_code]["password"] == password_input:
-            st.session_state.logged_in = True
-            st.session_state.emp_data = EMPLOYEE_DB[clean_code].copy()
-            st.session_state.emp_data["EmployeeCode"] = emp_code_input.strip()
-            st.rerun()
+    if st.button("Verify & Access Pay Slip"):
+        clean_code = emp_code_input.strip().lower()
+        
+        if clean_code in EMPLOYEE_DB:
+            if EMPLOYEE_DB[clean_code]["password"] == password_input:
+                st.session_state.logged_in = True
+                st.session_state.emp_data = EMPLOYEE_DB[clean_code].copy()
+                st.session_state.emp_data["EmployeeCode"] = emp_code_input.strip()
+                st.success("Verification successful! Loading your file...")
+                st.button("Click here to proceed") # स्टेट को बिना क्रैश किए रिफ्रेश करने के लिए
+            else:
+                st.error("Incorrect Password. Please try again.")
         else:
-            st.error("Incorrect Password. Please try again.")
-            st.session_state.logged_in = False
-    else:
-        st.error("Employee Code not found. Please check the code and try again.")
-        st.session_state.logged_in = False
+            st.error("Employee Code not found. Please check the code and try again.")
 
-# सफल लॉगिन होने पर डाउनलोड बटन दिखाएं
-if st.session_state.logged_in and st.session_state.emp_data:
+# अगर लॉगिन सक्सेसफुल हो गया है, तो लॉगिन बॉक्स गायब हो जाएंगे और सिर्फ डाउनलोड बटन दिखेगा
+else:
     st.success(f"Welcome, {st.session_state.emp_data['Employee Name']}! Your Pay Slip is verified.")
     
     pdf_bytes = generate_pdf(st.session_state.emp_data)
@@ -171,3 +170,9 @@ if st.session_state.logged_in and st.session_state.emp_data:
         file_name=f"PaySlip_{st.session_state.emp_data['EmployeeCode']}.pdf",
         mime="application/pdf"
     )
+    
+    # कर्मचारी लॉगआउट भी कर सकता है
+    if st.button("Log Out"):
+        st.session_state.logged_in = False
+        st.session_state.emp_data = None
+        st.button("Refresh Portal")
