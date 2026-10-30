@@ -69,8 +69,9 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>Bank Account:</b> {emp_data.get('BankAccount', 'N/A')}", normal_style), Paragraph(f"<b>PAN / UAN:</b> {emp_data.get('PAN_UAN', 'N/A')}", normal_style)]
     ]
     
-    # ऑटोमैटिक विड्थ एलोकेशन (बिना किसी हार्डकोडेड नंबर के)
-    info_table = Table(info_data, colWidths=[270, 270])
+    # पक्का समाधान: कुल चौड़ाई (540) को सीधे गणितीय रूप से विभाजित कर दिया ताकि कोई नंबर गायब न हो सके
+    calculated_info_widths = [540 * 0.5, 540 * 0.5]
+    info_table = Table(info_data, colWidths=calculated_info_widths)
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
         ('PADDING', (0,0), (-1,-1), 6),
@@ -102,7 +103,9 @@ def generate_pdf(emp_data):
         [Paragraph("<b>Total Earnings</b>", bold_style), Paragraph(f"<b>{total_earnings:,.2f}</b>", bold_style), Paragraph("<b>Total Deductions</b>", bold_style), Paragraph(f"<b>{total_deductions:,.2f}</b>", bold_style)]
     ]
     
-    financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[160, 110, 160, 110])
+    # वित्तीय तालिका के लिए भी डायरेक्ट कैलकुलेशन लगा दिया ताकि एरर आने की जगह ही न बचे
+    calculated_financial_widths = [540 * 0.3, 540 * 0.2, 540 * 0.3, 540 * 0.2]
+    financial_table = Table(breakdown_headers + breakdown_rows, colWidths=calculated_financial_widths)
     financial_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -115,7 +118,9 @@ def generate_pdf(emp_data):
     story.append(Spacer(1, 15))
     
     net_pay_data = [[Paragraph(f"<b>NET TAKE-HOME PAY:</b> ₹ {net_pay:,.2f}", bold_style)]]
-    net_pay_table = Table(net_pay_data, colWidths=[540])
+    
+    calculated_net_widths = [540]
+    net_pay_table = Table(net_pay_data, colWidths=calculated_net_widths)
     net_pay_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#C6F6D5")), 
         ('BORDER', (0,0), (-1,-1), 1, colors.HexColor("#38A169")),
