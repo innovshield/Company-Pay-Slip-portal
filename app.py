@@ -1,12 +1,3 @@
-import sys
-import subprocess
-
-# 🌟 AUTOMATIC DEPENDENCY CHECKER (Bina requirements file ke automatic installation)
-try:
-    import openpyxl
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl"])
-
 import streamlit as st
 import pandas as pd
 
@@ -14,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
 st.title("🔒 Secure Corporate PaySlip Portal")
 
-# SAFE NUMBER CONVERTER (Bina crash hue safe data nikalne ke liye)
+# SAFE NUMBER CONVERTER
 def safe_num(val):
     try:
         if pd.isna(val) or val == "" or val == "-":
@@ -24,7 +15,7 @@ def safe_num(val):
     except:
         return 0
 
-# 2. FUNCTION TO GENERATE PROFESSIONAL HTML-BASED PRINTABLE PAYSLIP
+# HTML PAYSLIP RENDERER
 def get_html_payslip(emp_data):
     fixed_gross = safe_num(emp_data.get('Fixed Gross', 0))
     total_earn = safe_num(emp_data.get('Total Earn', 0))
@@ -36,14 +27,12 @@ def get_html_payslip(emp_data):
 
     html_content = f"""
     <div style="font-family: Arial, sans-serif; border: 2px solid #1A365D; padding: 20px; border-radius: 8px; max-width: 650px; margin: auto; background-color: #ffffff; color: #333333;">
-        <!-- Header -->
         <div style="text-align: center; margin-bottom: 20px;">
             <h2 style="color: #1A365D; margin: 0 0 5px 0; font-size: 22px;">YOUR COMPANY NAME PVT. LTD.</h2>
             <p style="color: #4A5568; margin: 0; font-size: 12px;">Qutub Vihar, Dwarka, New Delhi</p>
             <h4 style="margin: 15px 0 0 0; color: #2B6CB0; text-decoration: underline;">Pay Slip for the Month of: {emp_data.get('Month', 'N/A')}</h4>
         </div>
         
-        <!-- Employee Master Details Table -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
             <tr style="background-color: #F7FAFC;">
                 <td style="padding: 6px; border: 1px solid #CBD5E0;"><b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}</td>
@@ -62,7 +51,6 @@ def get_html_payslip(emp_data):
             </tr>
         </table>
         
-        <!-- Salary Breakdown Structure -->
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px;">
             <tr style="background-color: #1A365D; color: white; font-weight: bold; text-align: center;">
                 <td style="padding: 8px; border: 1px solid #CBD5E0; width: 35%;">Salary Component</td>
@@ -132,10 +120,23 @@ def get_html_payslip(emp_data):
                 <td colspan="2" style="padding: 10px; border: 1px solid #CBD5E0; text-align: center; font-size: 15px;">₹{net_pay}</td>
             </tr>
         </table>
-        
-        <p style="font-size: 10px; color: #718096; text-align: center; margin-top: 15px; font-style: italic;">Note: This is a system-generated secure digital payslip and does not require a physical signature or stamp.</p>
     </div>
     """
     return html_content
 
-# 3. APPLICATION STARTPOINT
+# 3. DIRECT DATA LINK USING STREAMLIT FILE UPLOADER
+tab1, tab2, tab3 = st.tabs(["🔑 Employee Login", "🔄 Change Password", "⚙️ Admin Upload"])
+
+# TAB 3: ADMIN UPLOAD PANEL (Yahaan bina kisi library ke direct website par excel upload hogi)
+with tab3:
+    st.subheader("Upload Salary Sheet (Admin Only)")
+    uploaded_file = st.file_uploader("Apni salary_data.xlsx file select karein", type=["xlsx"])
+    if uploaded_file:
+        st.session_state['salary_df'] = pd.read_excel(uploaded_file)
+        st.success("File temporary upload ho chuki hai! Ab employee upar se login kar sakte hain.")
+
+# TAB 1: EMPLOYEE LOGIN PORTAL
+with tab1:
+    if 'salary_df' not in st.session_state:
+        st.warning("⚠️ Kripya sabse pehle 'Admin Upload' tab par jaakar apni Excel File upload karein!")
+    else:
