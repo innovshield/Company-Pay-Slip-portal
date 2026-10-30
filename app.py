@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 # 1. PAGE CONFIGURATION
-st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
+st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="wide")
 
 # SAFE NUMBER CONVERTER
 def safe_num(val):
@@ -139,5 +139,5 @@ else:
             df[col] = df[col].astype(str).str.strip()
 
     st.title("🔒 Secure Corporate PaySlip Portal")
+    st.markdown("---")
     
-    # Do alag sections/Tabs banayein taaki dono proper tarike se khulein
