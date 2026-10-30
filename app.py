@@ -26,55 +26,70 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 📄 DYNAMIC HTML PAYSLIP GENERATION FUNCTION (All Components Statically Explicit)
+# 📄 DYNAMIC HTML PAYSLIP GENERATION FUNCTION
 def get_html_payslip(emp):
-    # Function to safely pull float numbers from dict
+    # Function to safely pull numbers from dictionary series row format
     def get_val(key):
         try:
             val = emp.get(key)
-            # If value is a series/array, pull first element
             if hasattr(val, 'values'):
                 val = val.values[0]
-            elif isinstance(val, list) or hasattr(val, '__values__'):
+            elif isinstance(val, (list, tuple)) and len(val) > 0:
                 val = val[0]
+            elif isinstance(val, dict) and len(val) > 0:
+                val = list(val.values())[0]
             return float(val)
         except:
             return 0.0
 
-    # Function to safely format text outputs
-    def fmt(val):
-        v = get_val(val)
+    # Function to safely format float values to standard strings
+    def fmt(key):
+        v = get_val(key)
         return str(int(v)) if v > 0 else "-"
 
-    # Dedicated deduction label check to match original blueprint filter
+    # Dedicated checking function for deduction category text labels
     def show_ded(label, key):
         v = get_val(key)
         return label if v > 0 else ""
+
+    # Safe extraction function for plain descriptive string labels
+    def get_str(key, default=""):
+        try:
+            val = emp.get(key)
+            if hasattr(val, 'values'):
+                return str(val.values[0])
+            elif isinstance(val, (list, tuple)) and len(val) > 0:
+                return str(val[0])
+            elif isinstance(val, dict) and len(val) > 0:
+                return str(list(val.values())[0])
+            return str(val)
+        except:
+            return default
 
     html_layout = f"""
     <div style="font-family: Arial, sans-serif; padding: 15px; border: 1px solid #CBD5E0; background-color: #FFF; border-radius: 8px;">
         <div style="text-align: center; margin-bottom: 15px;">
             <h2 style="color: #1A365D; margin: 0;">INNOVSHIELD MANAGEMENT PVT. LTD.</h2>
             <p style="color: #4A5568; margin: 3px 0; font-size: 13px;">Qutub Vihar, Dwarka, New Delhi</p>
-            <h4 style="margin: 10px 0 0 0; color: #2D3748;">Pay Slip for the Month of: {emp.get('Month').values[0] if hasattr(emp.get('Month'), 'values') else emp.get('Month', 'N/A')}</h4>
+            <h4 style="margin: 10px 0 0 0; color: #2D3748;">Pay Slip for the Month of: {get_str('Month', 'N/A')}</h4>
         </div>
         <hr style="border: 0; border-top: 1px solid #E2E8F0; margin-bottom: 15px;"/>
         
         <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px;">
             <tr>
-                <td style="padding: 6px;"><b>Emp Code:</b> {emp.get('EmployeeCode').values[0] if hasattr(emp.get('EmployeeCode'), 'values') else emp.get('EmployeeCode', '')}</td>
-                <td style="padding: 6px;"><b>Name:</b> {emp.get('Employee Name').values[0] if hasattr(emp.get('Employee Name'), 'values') else emp.get('Employee Name', '')}</td>
-                <td style="padding: 6px;"><b>Designation:</b> {emp.get('Designation').values[0] if hasattr(emp.get('Designation'), 'values') else emp.get('Designation', '')}</td>
+                <td style="padding: 6px;"><b>Emp Code:</b> {get_str('EmployeeCode')}</td>
+                <td style="padding: 6px;"><b>Name:</b> {get_str('Employee Name')}</td>
+                <td style="padding: 6px;"><b>Designation:</b> {get_str('Designation')}</td>
             </tr>
             <tr>
-                <td style="padding: 6px;"><b>Location:</b> {emp.get('Location').values[0] if hasattr(emp.get('Location'), 'values') else emp.get('Location', '')}</td>
-                <td style="padding: 6px;"><b>A/c No:</b> {emp.get('Ac No').values[0] if hasattr(emp.get('Ac No'), 'values') else emp.get('Ac No', '')}</td>
-                <td style="padding: 6px;"><b>UAN No:</b> {emp.get('UAN NO').values[0] if hasattr(emp.get('UAN NO'), 'values') else emp.get('UAN NO', '')}</td>
+                <td style="padding: 6px;"><b>Location:</b> {get_str('Location')}</td>
+                <td style="padding: 6px;"><b>A/c No:</b> {get_str('Ac No')}</td>
+                <td style="padding: 6px;"><b>UAN No:</b> {get_str('UAN NO')}</td>
             </tr>
             <tr>
-                <td style="padding: 6px;"><b>ESIC No:</b> {emp.get('ESIC NO').values[0] if hasattr(emp.get('ESIC NO'), 'values') else emp.get('ESIC NO', '')}</td>
-                <td style="padding: 6px;"><b>Month Days:</b> {emp.get('Month Days').values[0] if hasattr(emp.get('Month Days'), 'values') else emp.get('Month Days', '')}</td>
-                <td style="padding: 6px;"><b>Worked Days:</b> {emp.get('Worked Days').values[0] if hasattr(emp.get('Worked Days'), 'values') else emp.get('Worked Days', '')}</td>
+                <td style="padding: 6px;"><b>ESIC No:</b> {get_str('ESIC NO')}</td>
+                <td style="padding: 6px;"><b>Month Days:</b> {get_str('Month Days')}</td>
+                <td style="padding: 6px;"><b>Worked Days:</b> {get_str('Worked Days')}</td>
             </tr>
         </table>
 
@@ -150,3 +165,6 @@ def get_html_payslip(emp):
                 <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">-</td>
             </tr>
             <tr>
+                <td style="padding: 6px; border: 1px solid #CBD5E0;">Arrears / Other</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">-</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{fmt('Arrears')}</td>
