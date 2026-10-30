@@ -155,10 +155,11 @@ else:
     current_user_code = st.session_state['logged_in_user']
     user_records = df[df['EmployeeCode'].astype(str) == current_user_code]
     
-    # Grab user metadata safely
+    # Grab user metadata safely using .iloc[0]
     user_first_record = user_records.iloc[0].to_dict()
     
-    col1, col2 = st.columns()
+    # 🌟 FIXED: Passed 2 inside st.columns() to support modern Streamlit versions
+    col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"### Welcome, **{user_first_record.get('Employee Name', 'Employee')}**")
     with col2:
