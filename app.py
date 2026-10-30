@@ -11,6 +11,7 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+    stDecoration {display:none;}
     [data-testid="stToolbar"] {visibility: hidden !important;}
     [data-testid="stStatusWidget"] {visibility: hidden !important;}
     .viewerBadge_container__174fd {display: none !important;}
@@ -25,79 +26,10 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 🛠️ HELPER: MOCK DATA CREATOR (Fixed Syntax Error here)
-def create_mock_data():
-    if not os.path.exists(excel_file):
-        mock_df = pd.DataFrame({
-            'EmployeeCode': ['EMP001', 'EMP002'],
-            'Password': ['pass123', 'secure456'],
-            'Employee Name': ['Amit Sharma', 'Priya Patel'],
-            'Designation': ['Software Engineer', 'HR Manager'],
-            'Month': ['October 2026', 'October 2026'],
-            'Basic':,
-            'HRA':,                 # Test case: 0 value will be hidden automatically
-            'Special Allowance':,    # Test case: 0 value will be hidden automatically
-            'Deductions':,
-            'PF': [1800, 0]                    # Test case: 0 value will be hidden automatically
-        })
-        mock_df.to_excel(excel_file, index=False)
-
-create_mock_data()
-
-# 📄 SAFE FUNCTION TO GENERATE COMPLETE PAYSLIP STRUCTURE (DYNAMIC ROWS)
+# 📄 SAFE FUNCTION TO GENERATE COMPLETE PAYSLIP STRUCTURE
 def get_html_payslip(emp):
-    earning_keys = ['Basic', 'HRA', 'Special Allowance', 'Dearness Allowance', 'Medical Allowance']
-    deduction_keys = ['Deductions', 'PF', 'Professional Tax', 'TDS']
-    
-    # Clean and filter out keys with 0, empty string, or Null values dynamically
-    active_earnings = {}
-    for k in earning_keys:
-        val = emp.get(k)
-        if pd.notna(val) and val != "":
-            try:
-                float_val = float(val)
-                if float_val > 0:
-                    active_earnings[k] = float_val
-            except ValueError:
-                pass
-
-    active_deductions = {}
-    for k in deduction_keys:
-        val = emp.get(k)
-        if pd.notna(val) and val != "":
-            try:
-                float_val = float(val)
-                if float_val > 0:
-                    active_deductions[k] = float_val
-            except ValueError:
-                pass
-    
-    total_earnings = sum(active_earnings.values())
-    total_deductions = sum(active_deductions.values())
-    net_salary = total_earnings - total_deductions
-
-    earn_items = list(active_earnings.items())
-    deduct_items = list(active_deductions.items())
-    max_rows = max(len(earn_items), len(deduct_items))
-    
-    table_rows_html = ""
-    for i in range(max_rows):
-        if i < len(earn_items):
-            e_name, e_val = earn_items[i]
-            earn_td = f"<td style='padding: 8px;'>{e_name}</td><td style='padding: 8px; text-align: right;'>{e_val:,.2f}</td>"
-        else:
-            earn_td = "<td style='padding: 8px;'></td><td style='padding: 8px; text-align: right;'></td>"
-            
-        if i < len(deduct_items):
-            d_name, d_val = deduct_items[i]
-            deduct_td = f"<td style='padding: 8px;'>{d_name}</td><td style='padding: 8px; text-align: right;'>{d_val:,.2f}</td>"
-        else:
-            deduct_td = "<td style='padding: 8px;'></td><td style='padding: 8px; text-align: right;'></td>"
-            
-        table_rows_html += f"<tr style='border-bottom: 1px solid #E2E8F0;'>{earn_td}{deduct_td}</tr>"
-
     html_layout = f"""
-    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #CBD5E0; background-color: #FFF; border-radius: 8px;">
+    <div style="font-family: Arial, sans-serif; padding: 15px; border: 1px solid #CBD5E0; background-color: #FFF; border-radius: 8px;">
         <div style="text-align: center; margin-bottom: 15px;">
             <h2 style="color: #1A365D; margin: 0;">INNOVSHIELD MANAGEMENT PVT. LTD.</h2>
             <p style="color: #4A5568; margin: 3px 0; font-size: 13px;">Qutub Vihar, Dwarka, New Delhi</p>
@@ -106,81 +38,204 @@ def get_html_payslip(emp):
         <hr style="border: 0; border-top: 1px solid #E2E8F0; margin-bottom: 15px;"/>
         <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px;">
             <tr>
-                <td style="padding: 6px; width: 33%;"><b>Emp Code:</b> {emp.get('EmployeeCode', '')}</td>
-                <td style="padding: 6px; width: 33%;"><b>Name:</b> {emp.get('Employee Name', '')}</td>
-                <td style="padding: 6px; width: 33%;"><b>Designation:</b> {emp.get('Designation', '')}</td>
+                <td style="padding: 6px;"><b>Emp Code:</b> {emp.get('EmployeeCode', '')}</td>
+                <td style="padding: 6px;"><b>Name:</b> {emp.get('Employee Name', '')}</td>
+                <td style="padding: 6px;"><b>Designation:</b> {emp.get('Designation', '')}</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px;"><b>Location:</b> {emp.get('Location', '')}</td>
+                <td style="padding: 6px;"><b>A/c No:</b> {emp.get('Ac No', '')}</td>
+                <td style="padding: 6px;"><b>UAN No:</b> {emp.get('UAN NO', '')}</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px;"><b>ESIC No:</b> {emp.get('ESIC NO', '')}</td>
+                <td style="padding: 6px;"><b>Month Days:</b> {emp.get('Month Days', '')}</td>
+                <td style="padding: 6px;"><b>Worked Days:</b> {emp.get('Worked Days', '')}</td>
             </tr>
         </table>
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #E2E8F0;">
-            <tr style="background-color: #F7FAFC; border-bottom: 1px solid #E2E8F0;">
-                <th style="padding: 8px; text-align: left; width: 35%;">Earnings</th>
-                <th style="padding: 8px; text-align: right; width: 15%;">Amount (₹)</th>
-                <th style="padding: 8px; text-align: left; width: 35%;">Deductions</th>
-                <th style="padding: 8px; text-align: right; width: 15%;">Amount (₹)</th>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+            <tr style="background-color: #1A365D; color: white;">
+                <th style="padding: 8px; border: 1px solid #CBD5E0;">Salary Component</th>
+                <th style="padding: 8px; border: 1px solid #CBD5E0;">Fixed Rate (₹)</th>
+                <th style="padding: 8px; border: 1px solid #CBD5E0;">Earned Amount (₹)</th>
+                <th style="padding: 8px; border: 1px solid #CBD5E0;">Deductions</th>
+                <th style="padding: 8px; border: 1px solid #CBD5E0;">Amount (₹)</th>
             </tr>
-            {table_rows_html}
-            <tr style="background-color: #EDF2F7; font-weight: bold;">
-                <td style="padding: 8px;">Gross Earnings</td>
-                <td style="padding: 8px; text-align: right;">{total_earnings:,.2f}</td>
-                <td style="padding: 8px;">Total Deductions</td>
-                <td style="padding: 8px; text-align: right;">{total_deductions:,.2f}</td>
+            <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Basic Salary</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed Basic', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Earn Basic', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Provident Fund (PF)</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('PF', 0)))}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">HRA</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed HRA', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Earn HRA', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">ESIC</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('ESIC', 0)))}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Statutory Bonus</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed Stat Bonus', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Earn Stat Bon', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">LWF</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('LWF', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Special Allowance</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed Special', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Earn Special', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">EWF Deduc</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('EWF', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Leave Encashment</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Leave Encash', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Ship/COD Loss</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Ship/COD Loss', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Attendance Bonus</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Atte Bonus', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Salary Advance</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Advance', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Mobile Allowances</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Mobile Allo', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Notice Pay Deduct</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Notice Pay', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Group Incentive</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Group Incentive', 0)))}</td>
+		<td style="padding: 8px; border: 1px solid #CBD5E0;"></td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Arrears / Other</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Arrears', 0)))}</td>
+		<td style="padding: 8px; border: 1px solid #CBD5E0;"></td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+            </tr>
+	    <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Incentive / Performance</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Incentive', 0)))}</td>
+		<td style="padding: 8px; border: 1px solid #CBD5E0;"></td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('None', 0)))}</td>
+            </tr>
+            <tr style="background-color: #F7FAFC; font-weight: bold;">
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Gross Total</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed Gross', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Total Earn', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Total Deduction</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Total Dedu', 0)))}</td>
+            </tr>
+            <tr style="background-color: #EBF8FF; color: #2B6CB0; font-weight: bold; font-size: 14px;">
+                <td colspan="3" style="padding: 10px; border: 1px solid #CBD5E0;">NET PAYABLE TAKE-HOME SALARY</td>
+                <td colspan="2" style="padding: 10px; border: 1px solid #CBD5E0; text-align: center;">₹{int(float(emp.get('Net Pay', 0)))}</td>
             </tr>
         </table>
-        <div style="margin-top: 15px; padding: 10px; background-color: #EBF8FF; border-radius: 4px; text-align: right; font-size: 14px; font-weight: bold; color: #2B6CB0;">
-            Net Salary Payable: ₹{net_salary:,.2f}
-        </div>
+        <p style="font-size: 11px; font-style: italic; margin-top: 15px; color: #718096;">Note: This is a system-generated secure slip and does not require a physical stamp or signature.</p>
     </div>
     """
     return html_layout
 
-# 2. APPLICATION ROUTING (LOGIN VS DASHBOARD)
-if not st.session_state['is_authenticated']:
-    st.subheader("🔑 Employee Self-Service Portal")
+# --- SECURE DATA GATEKEEPER & WORKSPACE ROUTING ---
+if not os.path.exists(excel_file):
+    st.error(f"❌ Master Database File '{excel_file}' missing from server root directory.")
+else:
+    df = pd.read_excel(excel_file)
+    df.fillna(0, inplace=True)
     
-    with st.form("login_form"):
-        emp_code = st.text_input("Employee Code").strip()
-        password = st.text_input("Password", type="password").strip()
-        submit_button = st.form_submit_button("Access Portal")
+    for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip()
+
+    # GATEKEEPER MODE
+    if not st.session_state['is_authenticated']:
+        st.title("🔒 Secure Corporate PaySlip Portal")
+        st.subheader("Login required to access the application")
         
-        if submit_button:
-            if os.path.exists(excel_file):
-                try:
-                    df = pd.read_excel(excel_file)
-                    df.columns = df.columns.str.strip()
-                    
-                    # Convert match lookup columns cleanly into string type
-                    df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip()
-                    df['Password'] = df['Password'].astype(str).str.strip()
-                    
-                    match = df[(df['EmployeeCode'] == emp_code) & (df['Password'] == password)]
-                    
+        with st.form("portal_gateway_login"):
+            input_user = st.text_input("Employee Code:").strip()
+            input_pass = st.text_input("Password:", type="password").strip()
+            login_btn = st.form_submit_button("Access Portal")
+            
+            if login_btn:
+                if input_user and input_pass:
+                    match = df[(df['EmployeeCode'] == input_user) & (df['Password'] == input_pass)]
                     if not match.empty:
                         st.session_state['is_authenticated'] = True
-                        # Select first row match record cleanly
-                        st.session_state['logged_in_user'] = match.iloc[0].to_dict()
+                        st.session_state['logged_in_user'] = input_user
+                        st.success("Authorized! Loading profile dashboard...")
                         st.rerun()
                     else:
-                        st.error("Invalid Employee Code or Password.")
-                except Exception as e:
-                    st.error(f"Error loading system database: {e}")
-            else:
-                st.error("Database file missing. Please contact HR.")
-else:
-    # 3. SECURE PAYSLIP DASHBOARD
-    user_data = st.session_state['logged_in_user']
-    
-    col1, col2 = st.columns()
-    with col1:
-        st.success(f"Welcome, {user_data.get('Employee Name', 'User')}")
-    with col2:
-        if st.button("Logout", use_container_width=True):
+                        st.error("❌ Invalid Employee Code or Password.")
+                else:
+                    st.warning("Please fill in both fields.")
+    else:
+        # SECURE DASHBOARD VIEWPORT
+        st.title("🔒 Secure Corporate PaySlip Portal")
+        
+        st.sidebar.title("🔐 Secure Session")
+        st.sidebar.write(f"Account: **{st.session_state['logged_in_user']}**")
+        if st.sidebar.button("Logout Session 🚪"):
             st.session_state['is_authenticated'] = False
             st.session_state['logged_in_user'] = None
             st.rerun()
             
-    st.write("### Your Digital Pay Slip")
-    
-    payslip_html = get_html_payslip(user_data)
-    st.markdown(payslip_html, unsafe_allow_html=True)
-    
-    st.caption("To save as a PDF, press **Ctrl+P** (or **Cmd+P** on Mac) to open the browser print menu.")
+        tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
+        current_emp = st.session_state['logged_in_user']
+        
+        with tab1:
+            user_records = df[df['EmployeeCode'] == current_emp]
+            
+            if not user_records.empty:
+                available_months = user_records['Month'].unique().tolist()
+                selected_month = st.selectbox("Select Month for PaySlip:", available_months)
+                
+                target_df = user_records[user_records['Month'] == selected_month]
+                
+                if not target_df.empty:
+                    # Clean dictionary conversion to avoid structural list mismatch
+                    emp_data_list = target_df.to_dict(orient='records')
+                    emp_data = emp_data_list[0]
+                    
+                    st.subheader(f"👋 Welcome, {emp_data.get('Employee Name', 'Employee')}")
+                    st.write(f"**Designation:** {emp_data.get('Designation', 'N/A')} | **Selected Month:** {selected_month}")
+                    
+                    st.markdown("---")
+                    
+                    # Renders beautiful live preview on screen
+                    payslip_html = get_html_payslip(emp_data)
+                    st.markdown(payslip_html, unsafe_allow_html=True)
+                    
+                    st.markdown("---")
+                    
+                    # 📥 MULTI-DEVICE SUPPORTED SECURE PDF DOWNLOAD ACTION BUTTON
+                    st.download_button(
+                        label=f"📥 Click Here to Download PaySlip ({selected_month}) - PDF format",
+                        data=payslip_html,
+                        file_name=f"PaySlip_{current_emp}_{selected_month}.html",
+                        mime="text/html",
+                        use_container_width=True
+                    )
+                else:
+                    st.error("❌ Selected month ka data nahi mila.")
+            else:
+                st.error("❌ Employee records database matching error.")
+                
+        with tab2:
+            st.subheader("🛠️ Account Security Settings")
+            st.write("Aap yahan se apna login password secure tarike se change kar sakte hain:")
+            
+            with st.form("change_password_form"):
+                current_password_input = st.text_input("Current Password:", type="password").strip()
