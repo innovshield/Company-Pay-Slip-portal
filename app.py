@@ -124,21 +124,22 @@ def get_html_payslip(emp_data):
     """
     return html_content
 
-# 3. DIRECT DATA LINK USING STREAMLIT FILE UPLOADER (CSV ONLY)
-tab1, tab2, tab3 = st.tabs(["🔑 Employee Login", "🔄 Change Password", "⚙️ Admin Upload"])
+# 3. DIRECT DATA LOADING FROM GITHUB (No upload needed!)
+csv_file = "salary_data.csv"
 
-# TAB 3: ADMIN UPLOAD PANEL
-with tab3:
-    st.subheader("Upload Salary Sheet (Admin Only)")
-    uploaded_file = st.file_uploader("Apni salary_data.csv file select karein", type=["csv"])
-    if uploaded_file:
-        st.session_state['salary_df'] = pd.read_csv(uploaded_file)
-        st.success("CSV File upload ho chuki hai! Ab employee upar se login kar sakte hain.")
+try:
+    df = pd.read_csv(csv_file)
+    df.fillna(0, inplace=True)
+    
+    for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip()
 
-# TAB 1: EMPLOYEE LOGIN PORTAL
-with tab1:
-    if 'salary_df' not in st.session_state:
-        st.warning("⚠️ Kripya sabse pehle 'Admin Upload' tab par jaakar apni CSV File upload karein!")
+    tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
 
-    if 'salary_df' in st.session_state:
-        df = st.session_state['salary_df']
+    # TAB 1: LOGIN & VIEW
+    with tab1:
+        st.subheader("Apna Account Login Karein")
+        with st.form("login_form"):
+            emp_code_input = st.text_input("Employee Code:").strip()
+            password_input = st.text_input("Password:", type="password").strip()
