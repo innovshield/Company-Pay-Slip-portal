@@ -145,7 +145,6 @@ else:
     df = pd.read_excel(excel_file)
     df.fillna(0, inplace=True)
     
-    # Clean up key text identifiers
     for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
@@ -191,3 +190,4 @@ else:
         with tab1:
             user_df = df[df['EmployeeCode'] == current_emp]
             
+            if not user_df.empty:
