@@ -139,7 +139,3 @@ for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
     if col in df.columns:
         df[col] = df[col].astype(str).str.strip()
 
-tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
-
-# TAB 1: LOGIN
-with tab1:
