@@ -1,3 +1,7 @@
+import os
+import sys
+os.system(f"{sys.executable} -m pip install reportlab openpyxl pandas streamlit")
+# ----------------------------------------------------
 import streamlit as st
 import pandas as pd
 from reportlab.lib.pagesizes import letter
