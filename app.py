@@ -56,9 +56,8 @@ def generate_pdf(emp_data):
         [Paragraph(f"<b>ESIC No:</b> {emp_data.get('ESIC NO', '')}", normal_style), Paragraph(f"<b>Month Days:</b> {emp_data.get('Month Days', '')}", normal_style), Paragraph(f"<b>Worked Days:</b> {emp_data.get('Worked Days', '')}", normal_style)]
     ]
     
-    # Setup fixed numerical width dimensions explicitly
-    widths_profile = [150, 200, 190]
-    info_table = Table(info_data, colWidths=widths_profile)
+    # Static Width numbers passed inline directly to bypass system strips
+    info_table = Table(info_data, colWidths=[150, 200, 190])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F7FAFC")),
@@ -87,7 +86,6 @@ def generate_pdf(emp_data):
          Paragraph("Earned Amount (₹)", header_text_style), Paragraph("Deductions", header_text_style), Paragraph("Amount (₹)", header_text_style)]
     ]
     
-    # Dynamic Filtering Logic to exclude zeros safely
     for comp, f_key, e_key, ded, d_key in all_components:
         f_val = float(emp_data.get(f_key, 0)) if f_key and emp_data.get(f_key) else 0.0
         e_val = float(emp_data.get(e_key, 0)) if e_key and emp_data.get(e_key) else 0.0
@@ -110,20 +108,18 @@ def generate_pdf(emp_data):
             Paragraph(ded_text, normal_style), Paragraph(d_text if ded_text else "", normal_style)
         ])
         
-    # Aggregate Summary Row
     salary_table_data.append([
         Paragraph("<b>Gross Total</b>", bold_style), Paragraph(f"<b>{int(float(emp_data.get('Fixed Gross', 0)))}</b>", bold_style), 
         Paragraph(f"<b>{int(float(emp_data.get('Total Earn', 0)))}</b>", bold_style), Paragraph("<b>Total Deduction</b>", bold_style), Paragraph(f"<b>{int(float(emp_data.get('Total Dedu', 0)))}</b>", bold_style)
     ])
     
-    # Final Payout Matrix Row
     salary_table_data.append([
         Paragraph(f"<b>NET PAYABLE TAKE-HOME SALARY: ₹{int(float(emp_data.get('Net Pay', 0)))}</b>", ParagraphStyle('NetStyle', parent=bold_style, fontSize=9, textColor=colors.HexColor("#2B6CB0"))), 
         "", "", "", ""
     ])
     
-    widths_salary = [140, 80, 100, 130, 90]
-    sal_table = Table(salary_table_data, colWidths=widths_salary)
+    # Inline widths fixed here as well to protect the layout parser
+    sal_table = Table(salary_table_data, colWidths=[140, 80, 100, 130, 90])
     sal_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")), 
         ('GRID', (0,0), (-1,-2), 0.5, colors.HexColor("#CBD5E0")),
@@ -153,7 +149,6 @@ else:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
-    # GATEKEEPER MODE: Render ONLY the login screen if not authenticated
     if not st.session_state['is_authenticated']:
         st.title("🔒 Secure Corporate PaySlip Portal")
         st.subheader("Login required to access the application")
@@ -176,10 +171,8 @@ else:
                 else:
                     st.warning("Please fill in both fields.")
     else:
-        # SECURE VIEWPORT FOR AUTHENTICATED USERS
         st.title("🔒 Secure Corporate PaySlip Portal")
         
-        # Sidebar clean sign-out system
         st.sidebar.title("🔐 Secure Session")
         st.sidebar.write(f"Account: **{st.session_state['logged_in_user']}**")
         if st.sidebar.button("Logout Session 🚪"):
@@ -190,5 +183,10 @@ else:
         tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
         current_emp = st.session_state['logged_in_user']
         
-        # TAB 1: WORKSPACE & PDF DOWNLOAD
         with tab1:
+            user_records = df[df['EmployeeCode'] == current_emp]
+            
+            if not user_records.empty:
+                available_months = user_records['Month'].unique().tolist()
+                selected_month = st.selectbox("Select Month for PaySlip:", available_months)
+                
