@@ -1,13 +1,19 @@
+import streamlit as st
 import os
 import sys
 
-# 🌟 MAGIC LINE: Yeh line openpyxl aur openpyxl dependencies ko khud automatic install kar degi
-try:
-    import openpyxl
-except ImportError:
-    os.system(f"{sys.executable} -m pip install openpyxl")
+# 🌟 STREAMLIT COMPATIBLE LIFECYCLE AUTO-INSTALLER
+@st.cache_resource
+def install_dependencies():
+    try:
+        import openpyxl
+    except ImportError:
+        import subprocess
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl"])
 
-import streamlit as st
+# Run the installer first
+install_dependencies()
+
 import pandas as pd
 
 # 1. PAGE CONFIGURATION
@@ -139,8 +145,3 @@ def get_html_payslip(emp_data):
     return html_content
 
 # 3. APPLICATION STARTPOINT
-excel_file = "salary_data.xlsx"
-
-df = pd.read_excel(excel_file)
-df.fillna(0, inplace=True)
-
