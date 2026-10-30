@@ -1,3 +1,12 @@
+import os
+import sys
+
+# 🌟 MAGIC LINE: Yeh line openpyxl aur openpyxl dependencies ko khud automatic install kar degi
+try:
+    import openpyxl
+except ImportError:
+    os.system(f"{sys.executable} -m pip install openpyxl")
+
 import streamlit as st
 import pandas as pd
 
@@ -5,16 +14,25 @@ import pandas as pd
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
 st.title("🔒 Secure Corporate PaySlip Portal")
 
+# SAFE NUMBER CONVERTER (Bina crash hue safe data nikalne ke liye)
+def safe_num(val):
+    try:
+        if pd.isna(val) or val == "" or val == "-":
+            return 0
+        clean_val = str(val).replace('₹', '').replace('Rs.', '').replace(',', '').strip()
+        return int(float(clean_val))
+    except:
+        return 0
+
 # 2. FUNCTION TO GENERATE PROFESSIONAL HTML-BASED PRINTABLE PAYSLIP
 def get_html_payslip(emp_data):
-    # Dynamic calculations for totals
-    fixed_gross = int(float(emp_data.get('Fixed Gross', 0)))
-    total_earn = int(float(emp_data.get('Total Earn', 0)))
-    total_dedu = int(float(emp_data.get('Total Dedu', 0)))
-    net_pay = int(float(emp_data.get('Net Pay', 0)))
+    fixed_gross = safe_num(emp_data.get('Fixed Gross', 0))
+    total_earn = safe_num(emp_data.get('Total Earn', 0))
+    total_dedu = safe_num(emp_data.get('Total Dedu', 0))
+    net_pay = safe_num(emp_data.get('Net Pay', 0))
     
-    # Combined incentives calculation safely
-    other_inc = int(float(emp_data.get('Arrears', 0)) + float(emp_data.get('Incentive', 0)) + float(emp_data.get('Performance', 0)))
+    other_inc = safe_num(emp_data.get('Arrears', 0)) + safe_num(emp_data.get('Incentive', 0)) + safe_num(emp_data.get('Performance', 0))
+    mobile_and_incentives = safe_num(emp_data.get('Mobile Allo', 0)) + safe_num(emp_data.get('Special Incentive', 0)) + safe_num(emp_data.get('Group Incentive', 0)) + other_inc
 
     html_content = f"""
     <div style="font-family: Arial, sans-serif; border: 2px solid #1A365D; padding: 20px; border-radius: 8px; max-width: 650px; margin: auto; background-color: #ffffff; color: #333333;">
@@ -55,52 +73,52 @@ def get_html_payslip(emp_data):
             </tr>
             <tr>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Basic Salary</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Fixed Basic', 0)))}</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Earn Basic', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Fixed Basic', 0))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Earn Basic', 0))}</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Provident Fund (PF)</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('PF', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('PF', 0))}</td>
             </tr>
             <tr>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">HRA</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Fixed HRA', 0)))}</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Earn HRA', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Fixed HRA', 0))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Earn HRA', 0))}</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">ESIC</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('ESIC', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('ESIC', 0))}</td>
             </tr>
             <tr>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Statutory Bonus</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Fixed Stat Bonus', emp_data.get('Fixed Stat Bon', 0))))}</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Earn Stat Bon', emp_data.get('Earn Stat Bonus', 0))))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Fixed Stat Bonus', emp_data.get('Fixed Stat Bon', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Earn Stat Bon', emp_data.get('Earn Stat Bonus', 0)))}</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">LWF</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('LWF', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('LWF', 0))}</td>
             </tr>
             <tr>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Special Allowance</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Fixed Special', 0)))}</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Earn Special', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Fixed Special', 0))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Earn Special', 0))}</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">EWF Deduc</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('EWF', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('EWF', 0))}</td>
             </tr>
             <tr>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Leave Encashment</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">-</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Leave Encash', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Leave Encash', 0))}</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Ship/COD Loss</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Ship/COD Loss', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Ship/COD Loss', 0))}</td>
             </tr>
             <tr>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Attendance Bonus</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">-</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Atte Bonus', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Atte Bonus', 0))}</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Salary Advance</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Advance', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Advance', 0))}</td>
             </tr>
             <tr>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Mobile & Incentives</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">-</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Mobile Allo', 0)) + float(emp_data.get('Special Incentive', 0)) + float(emp_data.get('Group Incentive', 0)) + other_inc)}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{mobile_and_incentives}</td>
                 <td style="padding: 6px; border: 1px solid #CBD5E0;">Notice Pay Deduct</td>
-                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp_data.get('Notice Pay', 0)))}</td>
+                <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{safe_num(emp_data.get('Notice Pay', 0))}</td>
             </tr>
             <tr style="background-color: #F7FAFC; font-weight: bold;">
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Gross Totals</td>
@@ -120,21 +138,9 @@ def get_html_payslip(emp_data):
     """
     return html_content
 
-# 3. DIRECT APP RUN LOGIC WITH AUTOMATIC ZERO FILL
+# 3. APPLICATION STARTPOINT
 excel_file = "salary_data.xlsx"
 
 df = pd.read_excel(excel_file)
 df.fillna(0, inplace=True)
 
-for col in ['EmployeeCode', 'Password', 'Employee Name', 'Month']:
-    if col in df.columns:
-        df[col] = df[col].astype(str).str.strip()
-
-tab1, tab2 = st.tabs(["🔑 Employee Login Portal", "🔄 Change Password"])
-
-# TAB 1: LOGIN & DISPLAY / PRINT
-with tab1:
-    st.subheader("Apna Account Login Karein")
-    with st.form("login_form"):
-        emp_code_input = st.text_input("Employee Code:").strip()
-        password_input = st.text_input("Password:", type="password").strip()
