@@ -120,11 +120,13 @@ def get_html_payslip(emp_data):
                 <td colspan="2" style="padding: 10px; border: 1px solid #CBD5E0; text-align: center; font-size: 15px;">₹{net_pay}</td>
             </tr>
         </table>
+        
+        <p style="font-size: 10px; color: #718096; text-align: center; margin-top: 15px; font-style: italic;">Note: This is a system-generated secure digital payslip and does not require a physical signature or stamp.</p>
     </div>
     """
     return html_content
 
-# 3. DIRECT FILE CHECK AND CLEAN FORM
+# 3. ABSOLUTE FIXED CORE DATA INTERACTION
 csv_file = "salary_data.csv"
 
 if not os.path.exists(csv_file):
@@ -137,8 +139,5 @@ else:
             df[col] = df[col].astype(str).str.strip()
 
     st.title("🔒 Secure Corporate PaySlip Portal")
-    st.write("---")
-
-    # 🌟 ZERO-GLITCH TEXT FIELDS (Bina kisi dynamic block ke simple implementation)
-    emp_code_input = st.text_input(label="Employee Code:", key="emp_code_fixed")
-    password_input = st.text_input(label="Password:", type="password", key="password_fixed")
+    
+    # Do alag sections/Tabs banayein taaki dono proper tarike se khulein
