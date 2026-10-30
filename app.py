@@ -9,8 +9,18 @@ import io
 # 1. पेज कॉन्फ़िगरेशन (सबसे ऊपर होना चाहिए)
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
 
+# 🔒 CSS कोड: तीन डॉट्स (MainMenu), फुटर (Footer) और हेडर को पूरी तरह छुपाने के लिए
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            stDecoration {display: none;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 # नकली डेटाबेस (Secure Database Setup)
-# लाइव ऐप में आप इसे अपने एक्सेल या SQL डेटाबेस से जोड़ सकते हैं
 EMPLOYEE_DB = {
     "IS-10245": {
         "password": "password123",
@@ -31,7 +41,6 @@ EMPLOYEE_DB = {
 # 📄 DYNAMIC PDF GENERATION FUNCTION
 def generate_pdf(emp_data):
     buffer = io.BytesIO()
-    # पेज मार्जिन सेट करें
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=letter, 
@@ -50,20 +59,19 @@ def generate_pdf(emp_data):
     bold_style = ParagraphStyle('BoldStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, leading=10)
     header_text_style = ParagraphStyle('HeaderTextStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, textColor=colors.white)
     
-    # कंपनी हेडर ब्रांडिंग
     story.append(Paragraph("<b>INNOVSHIELD MANAGEMENT PVT. LTD.</b>", title_style))
     story.append(Paragraph("Qutub Vihar, Dwarka, New Delhi", subtitle_style))
     story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
     story.append(Spacer(1, 5))
     
-    # एम्प्लोयी मास्टर प्रोफाइल ब्लॉक (कॉलम की चौड़ाई फिक्स कर दी गई है ताकि कोड न दिखे)
     info_data = [
         [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', 'N/A')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', 'N/A')}", normal_style)],
         [Paragraph(f"<b>Department:</b> {emp_data.get('Department', 'N/A')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', 'N/A')}", normal_style)],
         [Paragraph(f"<b>Bank Account:</b> {emp_data.get('BankAccount', 'N/A')}", normal_style), Paragraph(f"<b>PAN / UAN:</b> {emp_data.get('PAN_UAN', 'N/A')}", normal_style)]
     ]
     
-    info_table = Table(info_data, colWidths=[275, 275])
+    # 540 pt total printable width on letter page with 30 pt margins (612 - 60)
+    info_table = Table(info_data, colWidths=[270, 270])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
         ('PADDING', (0,0), (-1,-1), 6),
@@ -73,7 +81,6 @@ def generate_pdf(emp_data):
     story.append(info_table)
     story.append(Spacer(1, 15))
     
-    # सैलरी ब्रेकडाउन
     breakdown_headers = [
         [Paragraph("Earnings Component", header_text_style), Paragraph("Amount (₹)", header_text_style),
          Paragraph("Deductions Component", header_text_style), Paragraph("Amount (₹)", header_text_style)]
@@ -96,7 +103,7 @@ def generate_pdf(emp_data):
         [Paragraph("<b>Total Earnings</b>", bold_style), Paragraph(f"<b>{total_earnings:,.2f}</b>", bold_style), Paragraph("<b>Total Deductions</b>", bold_style), Paragraph(f"<b>{total_deductions:,.2f}</b>", bold_style)]
     ]
     
-    financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[160, 115, 160, 115])
+    financial_table = Table(breakdown_headers + breakdown_rows, colWidths=[170, 100, 170, 100])
     financial_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1A365D")),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E0")),
@@ -108,9 +115,8 @@ def generate_pdf(emp_data):
     story.append(financial_table)
     story.append(Spacer(1, 15))
     
-    # फाइनल इन-हैंड सैलरी डिस्प्ले
     net_pay_data = [[Paragraph(f"<b>NET TAKE-HOME PAY:</b> ₹ {net_pay:,.2f}", bold_style)]]
-    net_pay_table = Table(net_pay_data, colWidths=[550])
+    net_pay_table = Table(net_pay_data, colWidths=[540])
     net_pay_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#C6F6D5")), 
         ('BORDER', (0,0), (-1,-1), 1, colors.HexColor("#38A169")),
@@ -128,24 +134,19 @@ def generate_pdf(emp_data):
 st.title("🔒 Secure Corporate PaySlip Portal")
 st.write("Please enter your credentials to download your Pay Slip.")
 
-# इनपुट बॉक्स (UI)
 emp_code = st.text_input("Employee Code (e.g., IS-10245)")
 password = st.text_input("Password", type="password")
 
 if st.button("Verify & Access Pay Slip"):
-    # सुरक्षा जांच (Authentication Check)
     if emp_code in EMPLOYEE_DB:
         if EMPLOYEE_DB[emp_code]["password"] == password:
             st.success(f"Welcome, {EMPLOYEE_DB[emp_code]['Employee Name']}! Your Pay Slip is ready.")
             
-            # डेटा तैयार करें
             emp_data = EMPLOYEE_DB[emp_code]
             emp_data["EmployeeCode"] = emp_code
             
-            # बैकएंड में चुपचाप PDF बनाएं (स्क्रीन पर कुछ नहीं दिखेगा)
             pdf_bytes = generate_pdf(emp_data)
             
-            # सुरक्षित डाउनलोड बटन
             st.download_button(
                 label="📥 Download PaySlip PDF",
                 data=pdf_bytes,
