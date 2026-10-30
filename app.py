@@ -57,7 +57,7 @@ def generate_pdf(emp_data):
     story.append(Paragraph(f"<b>Pay Slip for the Month of:</b> {emp_data.get('Month', 'N/A')}", ParagraphStyle('H3', parent=styles['Heading3'], alignment=1, spaceAfter=10)))
     story.append(Spacer(1, 5))
     
-    # Employee Master Profile Information Block (Fixed Widths)
+    # Employee Master Profile Information Block (Fixed Widths: 270pt + 270pt = 540pt total printable width)
     info_data = [
         [Paragraph(f"<b>Emp Code:</b> {emp_data.get('EmployeeCode', '')}", normal_style), Paragraph(f"<b>Name:</b> {emp_data.get('Employee Name', '')}", normal_style)],
         [Paragraph(f"<b>Department:</b> {emp_data.get('Department', '')}", normal_style), Paragraph(f"<b>Designation:</b> {emp_data.get('Designation', '')}", normal_style)],
@@ -74,7 +74,7 @@ def generate_pdf(emp_data):
     story.append(info_table)
     story.append(Spacer(1, 15))
     
-    # Financial breakdown matrices
+    # Financial breakdown matrices (4 columns: 160pt, 110pt, 160pt, 110pt)
     breakdown_headers = [
         [Paragraph("Earnings Breakdown", header_text_style), Paragraph("Amount (INR)", header_text_style),
          Paragraph("Deductions Breakdown", header_text_style), Paragraph("Amount (INR)", header_text_style)]
@@ -107,7 +107,7 @@ def generate_pdf(emp_data):
     net_pay_data = [
         [Paragraph(f"<b>NET TAKE-HOME PAY:</b>", bold_style), Paragraph(f"<b>INR {net_pay:,.2f}</b>", ParagraphStyle('NetPay', parent=bold_style, fontSize=10, textColor=colors.HexColor("#2F855A")))]
     ]
-    net_pay_table = Table(net_pay_data, colWidths=[200, 340])
+    net_pay_table = Table(net_pay_data, colWidths=[160, 380])
     net_pay_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#E6FFFA")),
         ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#319795")),
@@ -160,7 +160,7 @@ else:
     if app_mode == "Download PaySlip":
         st.subheader("📋 Your Verified Payroll Ledger")
         
-        # FIXED CURRENT YEAR 2026
+        # CURRENT YEAR 2026
         month_choice = st.selectbox("Select Target Roster Month", ["October 2026", "November 2026", "December 2026"])
         
         # Calculate totals dynamically based on profile variables securely
@@ -193,4 +193,3 @@ else:
         with st.form("password_mutation"):
             old_p = st.text_input("Current System Password", type="password")
             new_p = st.text_input("New Identity Password", type="password")
-            confirm_p = st.text_input("Confirm New Password", type="password")
