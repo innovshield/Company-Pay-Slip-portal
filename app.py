@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 
 # 1. PAGE CONFIGURATION
 st.set_page_config(page_title="Corporate PaySlip Portal", page_icon="🔒", layout="centered")
@@ -124,10 +125,13 @@ def get_html_payslip(emp_data):
     """
     return html_content
 
-# 3. DIRECT DATA LOADING FROM GITHUB (No upload needed!)
+# 3. SAFE DIRECT DATA LOADING (Bina try-except ke crash proof logic)
 csv_file = "salary_data.csv"
 
-try:
+if not os.path.exists(csv_file):
+    st.error("🛑 Galti: GitHub folder mein 'salary_data.csv' file nahi mili!")
+    st.info("💡 Solution: GitHub par jaakar Add File -> Upload Files karke apni 'salary_data.csv' upload kar dein.")
+else:
     df = pd.read_csv(csv_file)
     df.fillna(0, inplace=True)
     
@@ -140,6 +144,3 @@ try:
     # TAB 1: LOGIN & VIEW
     with tab1:
         st.subheader("Apna Account Login Karein")
-        with st.form("login_form"):
-            emp_code_input = st.text_input("Employee Code:").strip()
-            password_input = st.text_input("Password:", type="password").strip()
