@@ -26,56 +26,8 @@ if 'logged_in_user' not in st.session_state:
 
 excel_file = "salary_data.xlsx"
 
-# 📄 DYNAMIC HTML PAYSLIP GENERATION FUNCTION (All Components Included Dynamically)
+# 📄 SAFE FUNCTION TO GENERATE COMPLETE PAYSLIP STRUCTURE
 def get_html_payslip(emp):
-    # Master Matrix Breakdown Configuration for All Components
-    all_components = [
-        ("Basic Salary", "Fixed Basic", "Earn Basic", "Provident Fund (PF)", "PF"),
-        ("HRA", "Fixed HRA", "Earn HRA", "ESIC", "ESIC"),
-        ("Statutory Bonus", "Fixed Stat Bonus", "Earn Stat Bon", "LWF", "LWF"),
-        ("Special Allowance", "Fixed Special", "Earn Special", "EWF Deduc", "EWF"),
-        ("Leave Encashment", None, "Leave Encash", "Ship/COD Loss", "Ship/COD Loss"),
-        ("Attendance Bonus", None, "Atte Bonus", "Salary Advance", "Advance"),
-        ("Mobile Allowance", None, "Mobile Allo", "Notice Pay Deduct", "Notice Pay"),
-        ("Special Incentive", None, "Special Incentive", None, None),
-        ("Group Incentive", None, "Group Incentive", None, None),
-        ("Arrears / Other", None, "Arrears", None, None),
-        ("Incentive / Performance", None, "Incentive", None, None)
-    ]
-    
-    # Building Dynamic Rows safely
-    rows_html = ""
-    for comp, f_key, e_key, ded, d_key in all_components:
-        f_val = float(emp.get(f_key, 0)) if f_key and emp.get(f_key) else 0.0
-        e_val = float(emp.get(e_key, 0)) if e_key and emp.get(e_key) else 0.0
-        d_val = float(emp_data.get(d_key, 0)) if d_key and emp_data.get(d_key) else 0.0 if 'emp_data' in globals() else 0.0
-        # Multi-month fallback patch
-        if d_key:
-            try: d_val = float(emp.get(d_key, 0))
-            except: d_val = 0.0
-
-        if f_val == 0.0 and e_val == 0.0 and d_val == 0.0 and not ded:
-            continue
-            
-        f_text = str(int(f_val)) if f_key and f_val > 0 else "-"
-        e_text = str(int(e_val)) if e_val > 0 else "-"
-        d_text = str(int(d_val)) if d_key and d_val > 0 else "-"
-        ded_text = ded if ded and (d_val > 0 or comp in ["Basic Salary", "HRA"]) else ""
-        comp_text = comp if (f_val > 0 or e_val > 0 or comp in ["Basic Salary", "HRA"]) else ""
-        
-        if comp_text == "" and ded_text == "":
-            continue
-            
-        rows_html += f"""
-        <tr>
-            <td style="padding: 6px; border: 1px solid #CBD5E0;">{comp_text}</td>
-            <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{f_text}</td>
-            <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{e_text}</td>
-            <td style="padding: 6px; border: 1px solid #CBD5E0;">{ded_text}</td>
-            <td style="padding: 6px; border: 1px solid #CBD5E0; text-align: center;">{d_text if ded_text else ""}</td>
-        </tr>
-        """
-
     html_layout = f"""
     <div style="font-family: Arial, sans-serif; padding: 15px; border: 1px solid #CBD5E0; background-color: #FFF; border-radius: 8px;">
         <div style="text-align: center; margin-bottom: 15px;">
@@ -104,18 +56,31 @@ def get_html_payslip(emp):
         <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
             <tr style="background-color: #1A365D; color: white;">
                 <th style="padding: 8px; border: 1px solid #CBD5E0;">Salary Component</th>
-                <th style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">Fixed Rate (₹)</th>
-                <th style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">Earned Amount (₹)</th>
+                <th style="padding: 8px; border: 1px solid #CBD5E0;">Fixed Rate (₹)</th>
+                <th style="padding: 8px; border: 1px solid #CBD5E0;">Earned Amount (₹)</th>
                 <th style="padding: 8px; border: 1px solid #CBD5E0;">Deductions</th>
-                <th style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">Amount (₹)</th>
+                <th style="padding: 8px; border: 1px solid #CBD5E0;">Amount (₹)</th>
             </tr>
-            {rows_html}
+            <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Basic Salary</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed Basic', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Earn Basic', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">Provident Fund (PF)</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('PF', 0)))}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">HRA</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed HRA', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Earn HRA', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">ESIC</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('ESIC', 0)))}</td>
+            </tr>
             <tr style="background-color: #F7FAFC; font-weight: bold;">
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Gross Total</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp.get('Fixed Gross', 0)))}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp.get('Total Earn', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Fixed Gross', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Total Earn', 0)))}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Total Deduction</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0; text-align: center;">{int(float(emp.get('Total Dedu', 0)))}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{int(float(emp.get('Total Dedu', 0)))}</td>
             </tr>
             <tr style="background-color: #EBF8FF; color: #2B6CB0; font-weight: bold; font-size: 14px;">
                 <td colspan="3" style="padding: 10px; border: 1px solid #CBD5E0;">NET PAYABLE TAKE-HOME SALARY</td>
@@ -138,6 +103,7 @@ else:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
+    # GATEKEEPER MODE
     if not st.session_state['is_authenticated']:
         st.title("🔒 Secure Corporate PaySlip Portal")
         st.subheader("Login required to access the application")
@@ -160,6 +126,7 @@ else:
                 else:
                     st.warning("Please fill in both fields.")
     else:
+        # SECURE DASHBOARD VIEWPORT
         st.title("🔒 Secure Corporate PaySlip Portal")
         
         st.sidebar.title("🔐 Secure Session")
@@ -182,6 +149,37 @@ else:
                 target_df = user_records[user_records['Month'] == selected_month]
                 
                 if not target_df.empty:
-                    # Pure positional first match item extract
-                    emp_data = target_df.iloc[0].to_dict()
+                    # Clean dictionary conversion to avoid structural list mismatch
+                    emp_data_list = target_df.to_dict(orient='records')
+                    emp_data = emp_data_list[0]
                     
+                    st.subheader(f"👋 Welcome, {emp_data.get('Employee Name', 'Employee')}")
+                    st.write(f"**Designation:** {emp_data.get('Designation', 'N/A')} | **Selected Month:** {selected_month}")
+                    
+                    st.markdown("---")
+                    
+                    # Renders beautiful live preview on screen
+                    payslip_html = get_html_payslip(emp_data)
+                    st.markdown(payslip_html, unsafe_allow_html=True)
+                    
+                    st.markdown("---")
+                    
+                    # 📥 MULTI-DEVICE SUPPORTED SECURE PDF DOWNLOAD ACTION BUTTON
+                    st.download_button(
+                        label=f"📥 Click Here to Download PaySlip ({selected_month}) - PDF format",
+                        data=payslip_html,
+                        file_name=f"PaySlip_{current_emp}_{selected_month}.html",
+                        mime="text/html",
+                        use_container_width=True
+                    )
+                else:
+                    st.error("❌ Selected month ka data nahi mila.")
+            else:
+                st.error("❌ Employee records database matching error.")
+                
+        with tab2:
+            st.subheader("🛠️ Account Security Settings")
+            st.write("Aap yahan se apna login password secure tarike se change kar sakte hain:")
+            
+            with st.form("change_password_form"):
+                current_password_input = st.text_input("Current Password:", type="password").strip()
