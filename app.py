@@ -159,14 +159,13 @@ if not st.session_state['is_authenticated']:
     st.title("🔒 Employee PaySlip Portal")
     st.subheader("Login to your account")
     
-    emp_code_input = st.text_input("Employee Code")
-    password_input = st.text_input("Password", type="password")
-    login_button = st.button("Login")
-    
-    if login_button:
-        if os.path.exists(excel_file):
-            df = pd.read_excel(excel_file)
-            df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip()
-            df['Password'] = df['Password'].astype(str).str.strip()
-            
-            # Check Credentials
+    # 🛠️ FIXED: WRAPPED IN st.form TO FIX BUTTON SELECTION FREEZE
+    with st.form("login_form_container"):
+        emp_code_input = st.text_input("Employee Code")
+        password_input = st.text_input("Password", type="password")
+        login_button = st.form_submit_button("Login", use_container_width=True)
+        
+        if login_button:
+            if os.path.exists(excel_file):
+                df = pd.read_excel(excel_file)
+                df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip()
