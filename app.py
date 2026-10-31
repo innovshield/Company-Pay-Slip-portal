@@ -51,11 +51,18 @@ def reset_excel_password(emp_code, current_password, new_password):
     except Exception as e:
         return False, f"⚠️ Database Modification Failure: {str(e)}"
 
+# Helper function to clean values safely outside the f-string layout
+def clean_val(emp, key):
+    val = emp.get(key, 0)
+    if pd.isna(val) or str(val).strip().lower() == 'none' or str(val).strip() == '':
+        return 0
+    try:
+        return int(float(val))
+    except:
+        return 0
+
 # 📄 SAFE FUNCTION TO GENERATE COMPLETE PAYSLIP STRUCTURE
 def get_html_payslip(emp):
-    # Safe float fallback evaluator helper lambda
-    safe_val = lambda key: int(float(emp.get(key, 0))) if emp.get(key) and str(emp.get(key)).strip().lower() != 'none' and str(emp.get(key)).strip() != '' else 0
-
     html_layout = f"""
     <div style="font-family: Arial, sans-serif; padding: 15px; border: 1px solid #CBD5E0; background-color: #FFF; border-radius: 8px;">
         <div style="text-align: center; margin-bottom: 15px;">
@@ -91,73 +98,71 @@ def get_html_payslip(emp):
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Basic Salary</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Fixed Basic')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Earn Basic')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Fixed Basic')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Earn Basic')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Provident Fund (PF)</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('PF')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'PF')}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">HRA</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Fixed HRA')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Earn HRA')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Fixed HRA')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Earn HRA')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">ESIC</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('ESIC')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'ESIC')}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Statutory Bonus</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Fixed Stat Bonus')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Earn Stat Bon')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Fixed Stat Bonus')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Earn Stat Bon')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">LWF</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('LWF')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'LWF')}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Special Allowance</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Fixed Special')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Earn Special')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Fixed Special')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Earn Special')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">EWF Deduc</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('EWF')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'EWF')}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Leave Encashment</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Leave Encash')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Leave Encash')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Ship/COD Loss</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Ship/COD Loss')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Ship/COD Loss')}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Attendance Bonus</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Atte Bonus')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Atte Bonus')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Salary Advance</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Advance')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Advance')}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Mobile Allowances</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Mobile Allo')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Mobile Allo')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Notice Pay Deduct</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Notice Pay')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Notice Pay')}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Group Incentive</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Group Incentive')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Group Incentive')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Other Deductions</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Other Deduc')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Other Deduc')}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Arrears / Other</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Arrears')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Arrears')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">-</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
             </tr>
             <tr style="background-color: #EDF2F7; font-weight: bold;">
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Gross Total</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Gross Fixed')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Gross Earned')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Gross Fixed')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Gross Earned')}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Total Deductions</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{safe_val('Total Deduc')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Total Deduc')}</td>
             </tr>
-        </table>
-        <div style="margin-top: 15px; padding: 10px; background-color: #EBF8FF; border-left: 4px solid #3182CE; font-weight: bold; font-size: 14px;">
