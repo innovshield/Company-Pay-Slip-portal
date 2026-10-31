@@ -33,14 +33,14 @@ def update_excel_password(emp_code, new_password):
             df = pd.read_excel(excel_file)
             
             # Data cleaning taaki data type match ho sake (String comparison)
-            df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip()
+            df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip().str.split('.').str[0]
             
             # Row index nikalna jahan employee code match ho
-            idx = df[df['EmployeeCode'] == str(emp_code)].index
+            idx = df[df['EmployeeCode'] == str(emp_code).strip()].index
             
             if not idx.empty:
                 # Excel me password column update karna
-                df.loc[idx, 'Password'] = str(new_password)
+                df.loc[idx, 'Password'] = str(new_password).strip()
                 df.to_excel(excel_file, index=False)
                 return True
         return False
@@ -159,13 +159,12 @@ if not st.session_state['is_authenticated']:
     st.title("🔒 Employee PaySlip Portal")
     st.subheader("Login to your account")
     
-    # 🛠️ FIXED: WRAPPED IN st.form TO FIX BUTTON SELECTION FREEZE
     with st.form("login_form_container"):
-        emp_code_input = st.text_input("Employee Code")
-        password_input = st.text_input("Password", type="password")
+        emp_code_input = st.text_input("Employee Code").strip()
+        password_input = st.text_input("Password", type="password").strip()
         login_button = st.form_submit_button("Login", use_container_width=True)
         
         if login_button:
             if os.path.exists(excel_file):
                 df = pd.read_excel(excel_file)
-                df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip()
+                
