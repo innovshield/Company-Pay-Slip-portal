@@ -32,8 +32,8 @@ def update_excel_password(emp_code, new_password):
         if os.path.exists(excel_file):
             df = pd.read_excel(excel_file)
             
-            # Data cleaning taaki data type match ho sake (String comparison)
-            df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip().str.split('.').str[0]
+            # Sahi string cleaning bina kisi syntax error ke
+            df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip()
             
             # Row index nikalna jahan employee code match ho
             idx = df[df['EmployeeCode'] == str(emp_code).strip()].index
@@ -160,11 +160,12 @@ if not st.session_state['is_authenticated']:
     st.subheader("Login to your account")
     
     with st.form("login_form_container"):
-        emp_code_input = st.text_input("Employee Code").strip()
-        password_input = st.text_input("Password", type="password").strip()
+        emp_code_input = st.text_input("Employee Code")
+        password_input = st.text_input("Password", type="password")
         login_button = st.form_submit_button("Login", use_container_width=True)
         
         if login_button:
             if os.path.exists(excel_file):
                 df = pd.read_excel(excel_file)
                 
+                # Pure data strings ko smooth conversion kiya matching ke liye
