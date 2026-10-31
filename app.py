@@ -32,11 +32,9 @@ def reset_excel_password(emp_code, current_password, new_password):
         if os.path.exists(excel_file):
             df = pd.read_excel(excel_file)
             
-            # String cleaning to handle type comparison without conversion crashes
             df['EmployeeCode'] = df['EmployeeCode'].astype(str).str.strip()
             df['Password'] = df['Password'].astype(str).str.strip()
             
-            # Match current valid target user entry row
             target_mask = (df['EmployeeCode'] == str(emp_code).strip()) & (df['Password'] == str(current_password).strip())
             matched_indices = df[target_mask].index
             
@@ -63,6 +61,35 @@ def clean_val(emp, key):
 
 # 📄 SAFE FUNCTION TO GENERATE COMPLETE PAYSLIP STRUCTURE
 def get_html_payslip(emp):
+    # Fetch data into local clean variables to avoid f-string bracket collapse
+    m_days = emp.get('Month Days', '')
+    w_days = emp.get('Worked Days', '')
+    fixed_b = clean_val(emp, 'Fixed Basic')
+    earn_b = clean_val(emp, 'Earn Basic')
+    pf_v = clean_val(emp, 'PF')
+    fixed_h = clean_val(emp, 'Fixed HRA')
+    earn_h = clean_val(emp, 'Earn HRA')
+    esic_v = clean_val(emp, 'ESIC')
+    fixed_sb = clean_val(emp, 'Fixed Stat Bonus')
+    earn_sb = clean_val(emp, 'Earn Stat Bon')
+    lwf_v = clean_val(emp, 'LWF')
+    fixed_sp = clean_val(emp, 'Fixed Special')
+    earn_sp = clean_val(emp, 'Earn Special')
+    ewf_v = clean_val(emp, 'EWF')
+    leave_v = clean_val(emp, 'Leave Encash')
+    ship_v = clean_val(emp, 'Ship/COD Loss')
+    atte_v = clean_val(emp, 'Atte Bonus')
+    adv_v = clean_val(emp, 'Advance')
+    mob_v = clean_val(emp, 'Mobile Allo')
+    notice_v = clean_val(emp, 'Notice Pay')
+    group_v = clean_val(emp, 'Group Incentive')
+    other_v = clean_val(emp, 'Other Deduc')
+    arr_v = clean_val(emp, 'Arrears')
+    g_fixed = clean_val(emp, 'Gross Fixed')
+    g_earn = clean_val(emp, 'Gross Earned')
+    t_deduc = clean_val(emp, 'Total Deduc')
+    net_p = clean_val(emp, 'Net Payable')
+
     html_layout = f"""
     <div style="font-family: Arial, sans-serif; padding: 15px; border: 1px solid #CBD5E0; background-color: #FFF; border-radius: 8px;">
         <div style="text-align: center; margin-bottom: 15px;">
@@ -84,8 +111,8 @@ def get_html_payslip(emp):
             </tr>
             <tr>
                 <td style="padding: 6px;"><b>ESIC No:</b> {emp.get('ESIC NO', '')}</td>
-                <td style="padding: 6px;"><b>Month Days:</b> {emp.get('Month Days', '')}</td>
-                <td style="padding: 6px;"><b>Worked Days:</b> {emp.get('Worked Days', '')}</td>
+                <td style="padding: 6px;"><b>Month Days:</b> {m_days}</td>
+                <td style="padding: 6px;"><b>Worked Days:</b> {w_days}</td>
             </tr>
         </table>
         <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
@@ -98,71 +125,64 @@ def get_html_payslip(emp):
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Basic Salary</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Fixed Basic')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Earn Basic')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{fixed_b}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{earn_b}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Provident Fund (PF)</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'PF')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{pf_v}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">HRA</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Fixed HRA')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Earn HRA')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{fixed_h}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{earn_h}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">ESIC</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'ESIC')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{esic_v}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Statutory Bonus</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Fixed Stat Bonus')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Earn Stat Bon')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{fixed_sb}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{earn_sb}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">LWF</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'LWF')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{lwf_v}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Special Allowance</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Fixed Special')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Earn Special')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{fixed_sp}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{earn_sp}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">EWF Deduc</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'EWF')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{ewf_v}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Leave Encashment</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Leave Encash')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{leave_v}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Ship/COD Loss</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Ship/COD Loss')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{ship_v}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Attendance Bonus</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Atte Bonus')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{atte_v}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Salary Advance</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Advance')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{adv_v}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Mobile Allowances</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Mobile Allo')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{mob_v}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Notice Pay Deduct</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Notice Pay')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{notice_v}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Group Incentive</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Group Incentive')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{group_v}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Other Deductions</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Other Deduc')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{other_v}</td>
             </tr>
             <tr>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">Arrears / Other</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Arrears')}</td>
+                <td style="padding: 8px; border: 1px solid #CBD5E0;">{arr_v}</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">-</td>
                 <td style="padding: 8px; border: 1px solid #CBD5E0;">0</td>
-            </tr>
-            <tr style="background-color: #EDF2F7; font-weight: bold;">
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">Gross Total</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Gross Fixed')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Gross Earned')}</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">Total Deductions</td>
-                <td style="padding: 8px; border: 1px solid #CBD5E0;">{clean_val(emp, 'Total Deduc')}</td>
             </tr>
